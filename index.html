@@ -1,51 +1,156 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#101720" />
-  <meta name="description" content="QS Pro — nền tảng bóc tách khối lượng và phát triển kỹ năng Quantity Surveyor." />
-  <title>QS Pro — Quantity Surveying Workspace</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <title>Game Hứng Vật Phẩm 2D</title>
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+        canvas {
+            background: #222;
+            border: 4px solid #444;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+    </style>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#overview" aria-label="QS Pro trang chủ"><span class="brand-mark">Q<span>S</span></span><span class="brand-copy">QS<span>PRO</span></span></a>
-      <div class="workspace"><span class="workspace-icon">⌂</span><span><small>KHÔNG GIAN LÀM VIỆC</small><strong>Dự án của tôi</strong></span><span class="chevron">⌄</span></div>
-      <div class="nav-label">WORKSPACE</div>
-      <nav class="navigation" aria-label="Điều hướng chính">
-        <button class="nav-item active" data-page="overview"><span>▦</span>Tổng quan</button>
-        <button class="nav-item" data-page="takeoff"><span>⌗</span>Bóc tách khối lượng</button>
-        <button class="nav-item" data-page="skills"><span>◈</span>Kỹ năng QS</button>
-        <button class="nav-item" data-page="library"><span>▤</span>Thư viện tài liệu</button>
-      </nav>
-      <div class="sidebar-projects"><div class="nav-label">DỰ ÁN GẦN ĐÂY <button id="newProject" title="Tạo dự án">+</button></div><button class="project-link"><i class="project-dot"></i> Riverside Residence <span>•••</span></button><button class="project-link"><i class="project-dot dot-gray"></i> Office Tower · GĐTK <span>•••</span></button></div>
-      <div class="sidebar-bottom"><div class="help-card"><span class="help-icon">?</span><strong>Cần hỗ trợ?</strong><p>Khám phá hướng dẫn sử dụng QS Pro.</p><button data-page="library">Xem hướng dẫn <span>→</span></button></div><div class="profile"><div class="avatar">GD</div><span><strong>Giám đốc dự án</strong><small>Chủ sở hữu workspace</small></span><button aria-label="Tùy chọn hồ sơ">•••</button></div></div>
-    </aside>
 
-    <main class="main-content">
-      <header class="topbar"><div class="breadcrumbs"><span>Workspace</span><b>/</b><strong id="crumb">Tổng quan</strong></div><div class="top-actions"><span class="today" id="today"></span><button class="icon-button" aria-label="Thông báo">♧<i></i></button><button class="top-avatar">GD</button></div></header>
-      <section class="page active" id="page-overview">
-        <div class="welcome-row"><div><div class="eyebrow"><span class="status-pulse"></span> WORKSPACE ĐANG HOẠT ĐỘNG</div><h1>Chào mừng trở lại, <em>Giám đốc.</em></h1><p class="page-subtitle">Mọi thứ về khối lượng và dự toán của bạn, trong một nơi.</p></div><button class="button button-primary" data-page="takeoff"><span>＋</span> Bắt đầu bóc tách</button></div>
-        <section class="hero-card"><div class="hero-copy"><div class="hero-kicker"><span class="hero-line"></span> QUANTITY SURVEYING · YOUR WORKSPACE</div><h2>Từ bản vẽ đến<br /><em>con số chính xác.</em></h2><p>Quản lý khối lượng, kiểm soát chi phí và nâng tầm năng lực QS — theo cách làm việc của bạn.</p><button class="hero-button" data-page="takeoff">Mở bảng bóc tách <span>↗</span></button></div><div class="hero-art" aria-hidden="true"><div class="art-grid"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-ring"><span>QS</span><i>+</i></div><div class="art-label label-a"><small>KHỐI LƯỢNG</small><strong>CHÍNH XÁC</strong></div><div class="art-label label-b"><small>CHI PHÍ</small><strong>KIỂM SOÁT</strong></div><div class="dimension dim-one"></div><div class="dimension dim-two"></div></div><div class="hero-index">01 <span>/ 04</span></div></section>
-        <div class="section-heading"><div><div class="eyebrow">TỔNG QUAN DỰ ÁN</div><h2>Đang triển khai</h2></div><button class="text-button" data-page="takeoff">Xem tất cả dự án <span>→</span></button></div>
-        <div class="stats-grid"><article class="stat-card"><div class="stat-top"><span>Dự án đang theo dõi</span><span class="stat-icon">▧</span></div><div class="stat-value">02 <small>dự án</small></div><div class="stat-foot"><span class="tiny-dot"></span> 1 dự án đang bóc tách</div></article><article class="stat-card"><div class="stat-top"><span>Hạng mục khối lượng</span><span class="stat-icon">⌗</span></div><div class="stat-value" id="totalItems">04 <small>hạng mục</small></div><div class="stat-foot">Trong bảng BOQ hiện tại</div></article><article class="stat-card"><div class="stat-top"><span>Tổng giá trị dự toán</span><span class="stat-icon">◉</span></div><div class="stat-value" id="totalCost">—</div><div class="stat-foot">Tạm tính · Riverside Residence</div></article><article class="stat-card"><div class="stat-top"><span>Kỹ năng QS</span><span class="stat-icon">◈</span></div><div class="stat-value">08 <small>chủ đề</small></div><div class="stat-foot">Lộ trình học tập cá nhân</div></article></div>
-        <div class="overview-bottom"><article class="panel project-panel"><div class="panel-heading"><div><div class="eyebrow">DỰ ÁN ĐƯỢC CHỌN</div><h3>Riverside Residence</h3></div><span class="tag tag-progress">ĐANG BÓC TÁCH</span></div><p class="project-meta">Nhà ở cao tầng <span>•</span> TP. Hồ Chí Minh</p><div class="progress-label"><span>Tiến độ bóc tách</span><strong>68%</strong></div><div class="progress-track"><div style="width:68%"></div></div><div class="project-footer"><span><b>04</b> hạng mục BOQ</span><span>Cập nhật hôm nay</span><button data-page="takeoff">Mở dự án <span>→</span></button></div></article><article class="panel quick-panel"><div class="eyebrow">TRUY CẬP NHANH</div><h3>Bạn muốn làm gì?</h3><button class="quick-link" data-page="takeoff"><span class="quick-icon">⌗</span><span><strong>Bóc tách khối lượng</strong><small>Thêm và tính toán hạng mục BOQ</small></span><b>→</b></button><button class="quick-link" data-page="skills"><span class="quick-icon quick-icon-amber">◈</span><span><strong>Rèn luyện kỹ năng QS</strong><small>Khám phá lộ trình chuyên môn</small></span><b>→</b></button></article></div>
-        <footer class="footer">QS PRO <span>•</span> Quantity surveying, made clearer. <span class="footer-right">THIẾT KẾ CHO NGƯỜI LÀM QS</span></footer>
-      </section>
+<canvas id="gameCanvas" width="480" height="640"></canvas>
 
-      <section class="page" id="page-takeoff"><div class="page-header"><div><div class="eyebrow">PROJECT WORKSPACE / BOQ</div><h1>Bóc tách khối lượng</h1><p class="page-subtitle">Tính toán, kiểm soát và xuất bảng dự toán cho dự án của bạn.</p></div><button class="button button-primary" id="addItem"><span>＋</span> Thêm hạng mục</button></div><div class="boq-project-bar"><div class="project-symbol">RR</div><div><strong>Riverside Residence</strong><small>Nhà ở cao tầng · TP. Hồ Chí Minh</small></div><span class="tag tag-progress">ĐANG BÓC TÁCH</span><button id="exportCsv" class="button button-outline">↓ <span>Xuất CSV</span></button></div><div class="boq-summary"><div><small>TỔNG SỐ HẠNG MỤC</small><strong id="boqCount">04</strong></div><div><small>TỔNG GIÁ TRỊ TẠM TÍNH</small><strong id="boqTotal">—</strong></div><div><small>ĐƠN VỊ TIỀN TỆ</small><strong>VND <span class="muted">· Việt Nam Đồng</span></strong></div></div><div class="table-wrap"><table class="boq-table"><thead><tr><th>MÃ HIỆU</th><th>MÔ TẢ CÔNG TÁC</th><th>ĐƠN VỊ</th><th>KHỐI LƯỢNG</th><th>ĐƠN GIÁ (VND)</th><th>THÀNH TIỀN (VND)</th><th></th></tr></thead><tbody id="boqBody"></tbody></table><div class="empty-state" id="emptyState" hidden>Chưa có hạng mục nào. Chọn “Thêm hạng mục” để bắt đầu bóc tách.</div></div><div class="table-note"><span>ⓘ</span> Thành tiền được tính tự động = Khối lượng × Đơn giá.</div><footer class="footer">QS PRO <span>•</span> Quantity surveying, made clearer. <span class="footer-right">THIẾT KẾ CHO NGƯỜI LÀM QS</span></footer></section>
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-      <section class="page" id="page-skills"><div class="page-header"><div><div class="eyebrow">PHÁT TRIỂN CHUYÊN MÔN</div><h1>Kỹ năng QS</h1><p class="page-subtitle">Bộ kỹ năng cốt lõi giúp bạn làm chủ chi phí từ đầu đến cuối dự án.</p></div></div><div class="skills-banner"><div><div class="hero-kicker"><span class="hero-line"></span> YOUR PROFESSIONAL TOOLKIT</div><h2>Nâng tầm năng lực.<br /><em>Làm chủ dự án.</em></h2><p>Kiến thức thực tiễn cho hành trình QS chuyên nghiệp, từ bản vẽ đầu tiên tới quyết toán cuối cùng.</p></div><div class="banner-seal">QS<span>PRO</span><small>EST. FOR QS</small></div></div><div class="section-heading"><div><div class="eyebrow">LỘ TRÌNH CHUYÊN MÔN</div><h2>Những kỹ năng của một QS giỏi</h2></div></div><div class="skills-grid"><article class="skill-card"><span class="skill-number">01</span><span class="skill-symbol">⌗</span><h3>Bóc tách khối lượng</h3><p>Đo bóc chính xác từ bản vẽ kiến trúc, kết cấu và MEP theo quy tắc đo lường.</p><span class="skill-tag">TAKEOFF & BOQ</span></article><article class="skill-card"><span class="skill-number">02</span><span class="skill-symbol">◫</span><h3>Lập dự toán</h3><p>Xây dựng đơn giá, phân tích chi phí và lập ngân sách cho dự án xây dựng.</p><span class="skill-tag">COST ESTIMATION</span></article><article class="skill-card"><span class="skill-number">03</span><span class="skill-symbol">◈</span><h3>Quản lý hợp đồng</h3><p>Hiểu các điều khoản, phạm vi công việc và quy trình quản lý thay đổi.</p><span class="skill-tag">CONTRACTS</span></article><article class="skill-card"><span class="skill-number">04</span><span class="skill-symbol">↗</span><h3>Kiểm soát chi phí</h3><p>Theo dõi ngân sách, phân tích chênh lệch và cảnh báo chi phí phát sinh.</p><span class="skill-tag">COST CONTROL</span></article><article class="skill-card"><span class="skill-number">05</span><span class="skill-symbol">▤</span><h3>Thanh quyết toán</h3><p>Kiểm tra khối lượng hoàn thành, hồ sơ thanh toán và quyết toán công trình.</p><span class="skill-tag">VALUATION</span></article><article class="skill-card"><span class="skill-number">06</span><span class="skill-symbol">◎</span><h3>Đàm phán & phối hợp</h3><p>Trình bày số liệu rõ ràng và phối hợp hiệu quả cùng các bên liên quan.</p><span class="skill-tag">COMMUNICATION</span></article></div><footer class="footer">QS PRO <span>•</span> Quantity surveying, made clearer. <span class="footer-right">THIẾT KẾ CHO NGƯỜI LÀM QS</span></footer></section>
+    // Khởi tạo người chơi (cái giỏ)
+    let catcher = {
+        x: canvas.width / 2 - 50,
+        y: canvas.height - 50,
+        width: 100,
+        height: 20,
+        speed: 8,
+        dx: 0
+    };
 
-      <section class="page" id="page-library"><div class="page-header"><div><div class="eyebrow">QS KNOWLEDGE HUB</div><h1>Thư viện tài liệu</h1><p class="page-subtitle">Bộ khung tài liệu và hướng dẫn để chuẩn hóa công việc QS của bạn.</p></div></div><div class="library-grid"><article class="library-card"><span class="library-icon">▤</span><div class="skill-tag">MẪU BIỂU</div><h3>Biểu mẫu BOQ</h3><p>Bảng khối lượng theo cấu trúc công tác, đơn vị, khối lượng và đơn giá.</p><button class="library-open" data-page="takeoff">Mở bảng BOQ <span>→</span></button></article><article class="library-card"><span class="library-icon">⌗</span><div class="skill-tag">HƯỚNG DẪN</div><h3>Quy trình đo bóc</h3><p>Nguyên tắc rà soát bản vẽ, phân chia hạng mục và kiểm tra khối lượng.</p><button class="library-open" id="measureGuide">Đọc hướng dẫn <span>→</span></button></article><article class="library-card"><span class="library-icon">◈</span><div class="skill-tag">KIẾN THỨC</div><h3>Thuật ngữ QS</h3><p>Tổng hợp thuật ngữ chuyên ngành và các viết tắt thường dùng trong dự án.</p><button class="library-open" id="termsGuide">Xem thuật ngữ <span>→</span></button></article></div><div class="library-note"><span>✳</span><div><strong>Thư viện của bạn sẽ lớn dần theo dự án.</strong><p>Đây là không gian để tập hợp quy chuẩn đo bóc, mẫu hợp đồng và tài liệu tham chiếu riêng cho đội ngũ của bạn.</p></div></div><footer class="footer">QS PRO <span>•</span> Quantity surveying, made clearer. <span class="footer-right">THIẾT KẾ CHO NGƯỜI LÀM QS</span></footer></section>
-    </main>
-  </div>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="app.js"></script>
+    // Khởi tạo vật phẩm rơi
+    let item = {
+        x: Math.random() * (canvas.width - 30),
+        y: -30,
+        radius: 15,
+        speed: 4
+    };
+
+    let score = 0;
+    let lives = 3;
+    let isGameOver = false;
+
+    // Lắng nghe bàn phím
+    let rightPressed = false;
+    let leftPressed = false;
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
+        if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+        if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
+        if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
+    });
+
+    function update() {
+        if (isGameOver) return;
+
+        // Di chuyển giỏ
+        if (rightPressed && catcher.x + catcher.width < canvas.width) {
+            catcher.x += catcher.speed;
+        } else if (leftPressed && catcher.x > 0) {
+            catcher.x -= catcher.speed;
+        }
+
+        // Vật phẩm rơi xuống
+        item.y += item.speed;
+
+        // Kiểm tra bắt trúng vật phẩm
+        if (
+            item.y + item.radius >= catcher.y &&
+            item.x >= catcher.x &&
+            item.x <= catcher.x + catcher.width
+        ) {
+            score += 10;
+            resetItem();
+            // Tăng tốc độ dần khi điểm cao lên
+            item.speed += 0.2;
+        }
+
+        // Kiểm tra rơi chạm đáy
+        if (item.y > canvas.height) {
+            lives--;
+            resetItem();
+            if (lives <= 0) {
+                isGameOver = true;
+            }
+        }
+    }
+
+    function resetItem() {
+        item.y = -30;
+        item.x = Math.random() * (canvas.width - 30);
+    }
+
+    function draw() {
+        // Xóa màn hình cũ
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Vẽ người chơi (Giỏ)
+        ctx.fillStyle = "#00ffcc";
+        ctx.fillRect(catcher.x, catcher.y, catcher.width, catcher.height);
+
+        // Vẽ vật phẩm (Quả bóng/Ngôi sao)
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff0055";
+        ctx.fill();
+        ctx.closePath();
+
+        // Hiển thị Điểm và Mạng
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Điểm: " + score, 20, 30);
+        ctx.fillText("Mạng: " + lives, canvas.width - 100, 30);
+
+        // Nếu thua cuộc
+        if (isGameOver) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+            
+            ctx.font = "18px Arial";
+            ctx.fillText("Nhấn F5 để chơi lại", canvas.width / 2, canvas.height / 2 + 20);
+            ctx.textAlign = "left";
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+</script>
+
 </body>
 </html>
