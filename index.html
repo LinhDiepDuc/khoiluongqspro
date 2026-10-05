@@ -1,814 +1,135 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QS PRO v2.6 SaaS - Phần Mềm Bóc Tách Khối Lượng Chuyên Nghiệp</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .active-tab { background-color: #eff6ff !important; color: #2563eb !important; font-weight: 700 !important; border-bottom: 2px solid #2563eb !important; }
-        .sub-tab-active { background-color: #2563eb !important; color: #ffffff !important; font-weight: 600 !important; }
-        .drag-over-active { border-color: #2563eb !important; background-color: #eff6ff !important; scale: 1.01; }
-    </style>
-</head>
-<body class="bg-slate-100 font-sans text-slate-800">
-
-    <!-- HEADER SYSTEM -->
-    <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="bg-blue-600 text-white p-2.5 rounded-xl font-bold text-xl shadow-md">
-                <i class="fa-solid fa-calculator"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    QS PRO <span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-0.5 rounded-full font-bold">v2.6 SaaS</span>
-                </h1>
-                <p class="text-xs text-slate-500">Hệ thống Quản lý Khối lượng & Dự toán Công trình (TT 13/2021/TT-BXD)</p>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-4">
-            <!-- Selector Chọn Dự Án -->
-            <div class="flex items-center space-x-2 bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 shadow-inner">
-                <i class="fa-solid fa-building text-slate-400"></i>
-                <select id="projectSelect" onchange="switchProject()" class="bg-transparent font-medium text-sm focus:outline-none text-slate-700 cursor-pointer">
-                    <option value="skyline">Toà Nhà Văn Phòng Skyline Tower</option>
-                    <option value="amdien">Khu dân cư Ấm Diện 2</option>
-                </select>
-            </div>
-            
-            <button class="text-slate-500 hover:text-slate-700 p-2"><i class="fa-regular fa-moon text-lg"></i></button>
-            <button class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow flex items-center gap-1.5">
-                <i class="fa-solid fa-crown"></i> Nâng Cấp PRO
-            </button>
-        </div>
-    </header>
-
-    <!-- NAVIGATION BAR -->
-    <nav class="bg-white border-b border-slate-200 px-6 py-1">
-        <div class="flex space-x-1 text-sm font-medium text-slate-600">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-4 py-2.5 rounded-lg active-tab flex items-center gap-2">
-                <i class="fa-solid fa-chart-pie"></i> Dashboard Tổng Quan
-            </button>
-            <button onclick="switchTab('boctach')" id="nav-boctach" class="px-4 py-2.5 rounded-lg hover:bg-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-list-check"></i> Bảng Khối Lượng Dự Án
-            </button>
-            <button onclick="switchTab('tool')" id="nav-tool" class="px-4 py-2.5 rounded-lg hover:bg-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-calculator text-blue-600"></i> Tool Tính Nhanh v2.6 <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">New</span>
-            </button>
-            <button onclick="switchTab('dutoan')" id="nav-dutoan" class="px-4 py-2.5 rounded-lg hover:bg-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-coins text-amber-500"></i> Dự Toán & Chi Phí
-            </button>
-            <button onclick="switchTab('tiendo')" id="nav-tiendo" class="px-4 py-2.5 rounded-lg hover:bg-slate-100 flex items-center gap-2">
-                <i class="fa-solid fa-bars-progress text-emerald-500"></i> Tiến Độ Hồ Sơ QS
-            </button>
-        </div>
-    </nav>
-
-    <!-- MAIN CONTENT AREA -->
-    <main class="p-6 max-w-7xl mx-auto space-y-6">
-
-        <!-- TAB 1: DASHBOARD -->
-        <div id="tab-dashboard" class="space-y-6">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800" id="dashProjectTitle">Toà Nhà Văn Phòng Skyline Tower</h2>
-                    <p class="text-xs text-slate-500 mt-1">Chủ đầu tư: Tập đoàn Skyline | Quy mô: 18 Tầng nổi + 2 Tầng hầm</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="exportReportPDF()" class="border border-slate-300 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
-                        <i class="fa-solid fa-file-pdf text-red-500"></i> Xuất Báo Cáo PDF
-                    </button>
-                    <button onclick="switchTab('tool')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i> Bóc Khối Lượng Mới
-                    </button>
-                </div>
-            </div>
-
-            <!-- CARDS TỔNG QUAN HỆ THỐNG -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="text-xs font-semibold text-slate-400 uppercase">TỔNG GIÁ TRỊ DỰ TOÁN</div>
-                    <div class="text-2xl font-extrabold text-slate-800 mt-1" id="dashTotalValue">151.090.000 VNĐ</div>
-                    <div class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-trend-up"></i> Liên kết trực tiếp Dự Toán
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="text-xs font-semibold text-slate-400 uppercase">TỔNG KHỐI LƯỢNG THÉP</div>
-                    <div class="text-2xl font-extrabold text-amber-600 mt-1" id="dashSteel">0.56 Tấn</div>
-                    <div class="text-xs text-slate-500 mt-1">TCVN 1651:2018</div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="text-xs font-semibold text-slate-400 uppercase">KHỐI LƯỢNG BÊ TÔNG</div>
-                    <div class="text-2xl font-extrabold text-blue-600 mt-1" id="dashConcrete">45.0 m³</div>
-                    <div class="text-xs text-slate-500 mt-1">Mác 300 Đá 1x2</div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="text-xs font-semibold text-slate-400 uppercase">DIỆN TÍCH VÁN KHUÔN</div>
-                    <div class="text-2xl font-extrabold text-purple-600 mt-1" id="dashFormwork">120.0 m²</div>
-                    <div class="text-xs text-slate-500 mt-1">Phủ phim 18mm</div>
-                </div>
-            </div>
-
-            <!-- BIỂU ĐỒ DASHBOARD FULL FEATURE -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="md:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-800 text-sm mb-4">Phân Bổ Tỷ Trọng Chi Phí Hạng Mục</h3>
-                    <div class="h-64"><canvas id="chartCategory"></canvas></div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-800 text-sm mb-4">Trạng Thái Bảo Vệ Hồ Sơ QS</h3>
-                    <div class="h-64"><canvas id="chartProgress"></canvas></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 2: BẢNG KHỐI LƯỢNG DỰ ÁN -->
-        <div id="tab-boctach" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center border-b pb-4">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                            <i class="fa-solid fa-table-list text-blue-600"></i> Bảng Chi Tiết Khối Lượng Bóc Tách
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Dữ liệu được liên kết và cập nhật tự động từ Tool Tính Nhanh v2.6</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="switchTab('tool')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm">
-                            <i class="fa-solid fa-plus"></i> Nhập Khối Lượng Mới
-                        </button>
-                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm">
-                            <i class="fa-solid fa-file-excel"></i> Xuất Excel TCVN
-                        </button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-600 border-collapse">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-100 border-b border-slate-200">
-                            <tr>
-                                <th class="px-3 py-3 text-center">STT</th>
-                                <th class="px-3 py-3">Mã Định Mức</th>
-                                <th class="px-4 py-3">Tên Công Việc / Diễn Giải Khối Lượng</th>
-                                <th class="px-3 py-3 text-center">ĐVT</th>
-                                <th class="px-3 py-3 text-right">Số Lượng</th>
-                                <th class="px-3 py-3 text-right">Chiều Dài</th>
-                                <th class="px-3 py-3 text-right">Khối Lượng</th>
-                                <th class="px-4 py-3 text-right">Đơn Giá (VNĐ)</th>
-                                <th class="px-4 py-3 text-right">Thành Tiền (VNĐ)</th>
-                                <th class="px-3 py-3 text-center">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="boctachTableBody">
-                            <!-- Render tự động -->
-                        </tbody>
-                        <tfoot class="bg-slate-50 font-bold text-slate-800 border-t-2 border-slate-300">
-                            <tr>
-                                <td colspan="6" class="px-4 py-3 text-right">TỔNG CỘNG GIÁ TRỊ KHỐI LƯỢNG:</td>
-                                <td class="px-3 py-3 text-right text-blue-600" id="footTotalVolume">0.00</td>
-                                <td></td>
-                                <td class="px-4 py-3 text-right text-emerald-600 text-base" id="footTotalPrice">0 VNĐ</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: TOOL TÍNH NHANH V2.6 -->
-        <div id="tab-tool" class="hidden space-y-6">
-            
-            <!-- SUB NAV FOR TOOL -->
-            <div class="flex border-b border-slate-200 space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm">
-                <button onclick="switchSubTool('thep')" id="subtool-btn-thep" class="px-4 py-2 font-semibold text-sm rounded-lg sub-tab-active flex items-center gap-2">
-                    <i class="fa-solid fa-cubes-stacked"></i> Thép Dọc & Thép Đai (TCVN 1651)
-                </button>
-                <button onclick="switchSubTool('ocr')" id="subtool-btn-ocr" class="px-4 py-2 font-semibold text-sm rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI Smart OCR (Đọc Bảng Thống Kê)
-                </button>
-                <button onclick="switchSubTool('cut')" id="subtool-btn-cut" class="px-4 py-2 font-semibold text-sm rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-scissors text-emerald-500"></i> Tối Ưu Cắt Thép 11.7m
-                </button>
-            </div>
-
-            <!-- SUBTOOL 1: BÓC TÁCH THÉP TRANG TÍNH NHẬP LIỆU -->
-            <div id="subtool-thep" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- FORM NHẬP LIỆU SẠCH SẼ -->
-                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-pen-to-square text-blue-600"></i> Bảng Nhập Thông Số Cấu Kiện Thép
-                        </h3>
-                        <button onclick="resetSteelForm()" class="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-rotate-left"></i> Xóa Trắng / Làm Mới
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Tên Cấu Kiện / Thanh Thép</label>
-                            <input type="text" id="steelName" placeholder="VD: Thép Dầm D20 - Tầng 2" class="w-full mt-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Loại Cấu Kiện</label>
-                            <select id="steelType" class="w-full mt-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="doc">Thép Dọc (Dầm, Cột, Sàn)</option>
-                                <option value="dai">Thép Đai / Thép Phân Bố</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Đường Kính D (mm)</label>
-                            <select id="steelDia" onchange="calculateSteel()" class="w-full mt-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="0">-- Chọn Phi --</option>
-                                <option value="6">d6 (0.222 kg/m)</option>
-                                <option value="8">d8 (0.395 kg/m)</option>
-                                <option value="10">d10 (0.617 kg/m)</option>
-                                <option value="12">d12 (0.888 kg/m)</option>
-                                <option value="14">d14 (1.210 kg/m)</option>
-                                <option value="16">d16 (1.580 kg/m)</option>
-                                <option value="18">d18 (2.000 kg/m)</option>
-                                <option value="20">d20 (2.470 kg/m)</option>
-                                <option value="22">d22 (2.980 kg/m)</option>
-                                <option value="25">d25 (3.850 kg/m)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Số Lượng Cấu Kiện / Thanh</label>
-                            <input type="number" id="steelQty" oninput="calculateSteel()" placeholder="0" class="w-full mt-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Chiều Dài 1 Thanh L (m)</label>
-                            <input type="number" id="steelLen" oninput="calculateSteel()" step="0.01" placeholder="0.00" class="w-full mt-1 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Hệ Số Nối Thép (Tự động tính khi L > 11.7m)</label>
-                            <select id="steelLap" onchange="calculateSteel()" class="w-full mt-1 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="40">40D (Tiêu chuẩn thi công)</option>
-                                <option value="30">30D (Thép chịu nén)</option>
-                                <option value="0">Không tính đoạn nối</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-semibold text-slate-600">Đoạn Neo / Bẻ Móc 2 Đầu (mm)</label>
-                            <input type="number" id="steelHook" oninput="calculateSteel()" placeholder="VD: 300" class="w-full mt-1 border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BẢNG KẾT QUẢ TÍNH TOÁN & NÚT PUSH LIÊN KẾT HỆ THỐNG -->
-                <div class="bg-slate-900 text-white p-6 rounded-2xl flex flex-col justify-between shadow-lg">
-                    <div>
-                        <div class="text-xs text-blue-400 font-semibold uppercase tracking-wider flex justify-between">
-                            <span>KẾT QUẢ BÓC TÁCH THÉP v2.6</span>
-                            <span class="text-emerald-400"><i class="fa-solid fa-bolt"></i> Live Realtime</span>
-                        </div>
-                        <div class="mt-4 space-y-3">
-                            <div class="flex justify-between border-b border-slate-800 pb-2">
-                                <span class="text-slate-400 text-sm">Tổng Chiều Dài (Gồm Neo/Nối):</span>
-                                <span class="font-bold text-lg text-emerald-400" id="resLength">0.00 m</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-800 pb-2">
-                                <span class="text-slate-400 text-sm">Số Mối Nối 40D Phát Sinh:</span>
-                                <span class="font-bold text-amber-400" id="resLapsCount">0 mối</span>
-                            </div>
-                            <div class="flex justify-between border-b border-slate-800 pb-2">
-                                <span class="text-slate-400 text-sm">Trọng Lượng Đơn Vị:</span>
-                                <span class="font-semibold text-slate-200" id="resUnitWeight">0.000 kg/m</span>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 bg-slate-800/60 p-4 rounded-xl border border-slate-700">
-                            <div class="text-xs text-slate-400">TỔNG KHỐI LƯỢNG THÉP CẤU KIỆN:</div>
-                            <div class="text-3xl font-extrabold text-amber-400 mt-1" id="resTotalWeight">0.00 kg</div>
-                            <div class="text-xs text-slate-300 font-medium mt-0.5" id="resTotalTon">(0.000 Tấn)</div>
-                        </div>
-                    </div>
-
-                    <button onclick="pushSteelToSystem()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex justify-center items-center gap-2 mt-6">
-                        <i class="fa-solid fa-arrow-down-to-square"></i> Đưa Vào Bảng Khối Lượng Dự Án
-                    </button>
-                </div>
-            </div>
-
-            <!-- SUBTOOL 2: AI OCR ACTIVE FILE UPLOAD & DRAG DROP -->
-            <div id="subtool-ocr" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI Smart OCR - Trích Xuất Bảng Thống Kê Bản Vẽ
-                </h3>
-                <p class="text-xs text-slate-500">Tải ảnh chụp hoặc file PDF Bảng thống kê cốt thép, AI sẽ tự đọc số liệu và đẩy vào Bảng Khối Lượng.</p>
-                
-                <!-- INPUT FILE ẨN PHỤC VỤ CLICK VÀO KHUNG -->
-                <input type="file" id="ocrFileInput" class="hidden" accept=".pdf,image/*" onchange="handleOcrFileSelect(event)">
-                
-                <div id="dropZone" onclick="triggerFileInput()" class="border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center bg-slate-50 hover:bg-blue-50 transition cursor-pointer transition-all">
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-blue-500 mb-2 pointer-events-none"></i>
-                    <p class="font-semibold text-sm text-slate-700 pointer-events-none">Kéo thả file bản vẽ (PDF, PNG, JPG) vào đây hoặc BẤM ĐỂ CHỌN FILE</p>
-                    <p class="text-xs text-slate-400 mt-1 pointer-events-none">Hỗ trợ nhận diện chuẩn TCVN, tự động quy đổi đường kính và chiều dài</p>
-                </div>
-
-                <div id="ocrStatus" class="hidden p-4 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-3">
-                    <i class="fa-solid fa-spinner fa-spin text-lg"></i>
-                    <span id="ocrStatusText">Đang phân tích cấu trúc bản vẽ và trích xuất dữ liệu cốt thép...</span>
-                </div>
-            </div>
-
-            <!-- SUBTOOL 3: CUTTING OPTIMIZATION -->
-            <div id="subtool-cut" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i class="fa-solid fa-scissors text-emerald-500"></i> Tối Ưu Sơ Đồ Cắt Thép Nguyên Cây 11.7m
-                </h3>
-                <p class="text-xs text-slate-500">Thuật toán xếp thanh tự động giúp giảm tỷ lệ mẩu thép thừa (de-pay) xuống dưới 2% cho toàn bộ dự án.</p>
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-sm font-medium flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
-                    <span>Sẵn sàng kết xuất sơ đồ cắt thép từ danh mục Bảng Khối Lượng hiện tại!</span>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- TAB 4: DỰ TOÁN & CHI PHÍ -->
-        <div id="tab-dutoan" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center border-b pb-4">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                            <i class="fa-solid fa-coins text-amber-500"></i> Bảng Tổng Hợp Kinh Phí Dự Toán
-                        </h3>
-                        <p class="text-xs text-slate-500">Tính toán theo Nghị định 10/2021/NĐ-CP & Thông tư 11/2021/TT-BXD</p>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-600">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
-                            <tr>
-                                <th class="px-4 py-3">STT</th>
-                                <th class="px-4 py-3">Khoản Mục Chi Phí</th>
-                                <th class="px-4 py-3">Cách Tính / Ký Hiệu</th>
-                                <th class="px-4 py-3 text-right">Giá Trị Trước Thuế (VNĐ)</th>
-                                <th class="px-4 py-3 text-right">Thuế VAT (8%)</th>
-                                <th class="px-4 py-3 text-right">Tổng Chi Phí (VNĐ)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b bg-white">
-                                <td class="px-4 py-3 font-bold">1</td>
-                                <td class="px-4 py-3 font-semibold text-slate-800">Chi phí Xây dựng (TND)</td>
-                                <td class="px-4 py-3 text-xs text-slate-500">G = T + GTGT</td>
-                                <td class="px-4 py-3 text-right font-medium" id="dtXaydungBefore">139.898.148</td>
-                                <td class="px-4 py-3 text-right font-medium" id="dtXaydungVat">11.191.852</td>
-                                <td class="px-4 py-3 text-right font-bold text-slate-800" id="dtXaydungTotal">151.090.000</td>
-                            </tr>
-                            <tr class="border-b bg-white">
-                                <td class="px-4 py-3 font-bold">2</td>
-                                <td class="px-4 py-3 font-semibold text-slate-800">Chi phí Thiết bị (TB)</td>
-                                <td class="px-4 py-3 text-xs text-slate-500">Quy chuẩn gói thầu</td>
-                                <td class="px-4 py-3 text-right font-medium">0</td>
-                                <td class="px-4 py-3 text-right font-medium">0</td>
-                                <td class="px-4 py-3 text-right font-bold text-slate-800">0</td>
-                            </tr>
-                            <tr class="border-b bg-white">
-                                <td class="px-4 py-3 font-bold">3</td>
-                                <td class="px-4 py-3 font-semibold text-slate-800">Chi phí Quản lý Dự án (QLDA)</td>
-                                <td class="px-4 py-3 text-xs text-slate-500">3.2% x G</td>
-                                <td class="px-4 py-3 text-right font-medium">4.834.880</td>
-                                <td class="px-4 py-3 text-right font-medium">386.790</td>
-                                <td class="px-4 py-3 text-right font-bold text-slate-800">5.221.670</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: TIẾN ĐỘ HỒ SƠ QS -->
-        <div id="tab-tiendo" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center border-b pb-4">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                            <i class="fa-solid fa-bars-progress text-emerald-500"></i> Tiến Độ Bảo Vệ Hồ Sơ QS & Thanh Toán
-                        </h3>
-                        <p class="text-xs text-slate-500">Theo dõi chu kỳ thẩm tra khối lượng với Chủ đầu tư & Nhà thầu phụ</p>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="p-4 border border-slate-200 rounded-xl bg-slate-50 flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">Hồ sơ đợt 1: Bóc tách phần móng & Cột tầng hầm</h4>
-                                <p class="text-xs text-slate-500">Đã phê duyệt | Đạt 100% giá trị hợp đồng đợt 1</p>
-                            </div>
-                        </div>
-                        <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">Đã bảo vệ</span>
-                    </div>
-
-                    <div class="p-4 border border-slate-200 rounded-xl bg-slate-50 flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-800">Hồ sơ đợt 2: Kết cấu dầm sàn Tầng 1 - Tầng 5</h4>
-                                <p class="text-xs text-slate-500">Đang thẩm tra với tư vấn giám sát | Giá trị: 151.090.000 VNĐ</p>
-                            </div>
-                        </div>
-                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">Đang kiểm tra</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- SYSTEM JAVASCRIPT ENGINE -->
-    <script>
-        const STEEL_WEIGHT_TABLE = {
-            6: 0.222, 8: 0.395, 10: 0.617, 12: 0.888, 14: 1.210,
-            16: 1.580, 18: 2.000, 20: 2.470, 22: 2.980, 25: 3.850
-        };
-
-        let currentProjectKey = 'skyline';
-
-        let projectsData = {
-            skyline: {
-                title: 'Toà Nhà Văn Phòng Skyline Tower',
-                items: [
-                    { id: 1, code: 'AF.11111', name: 'Bê tông dầm sàn M300 đá 1x2', unit: 'm³', qty: 1, len: 45.0, total: 45.0, price: 1450000 },
-                    { id: 2, code: 'AF.61110', name: 'Cốt thép dầm sàn d<=18mm (TCVN 1651)', unit: 'Tấn', qty: 1, len: 0.56, total: 0.56, price: 18500000 },
-                    { id: 3, code: 'AF.81111', name: 'Ván khuôn dầm sàn gỗ/phủ phim 18mm', unit: 'm²', qty: 1, len: 120.0, total: 120.0, price: 180000 }
-                ]
-            },
-            amdien: {
-                title: 'Khu dân cư Ấm Diện 2',
-                items: []
-            }
-        };
-
-        let chartCatInstance = null;
-        let chartProgInstance = null;
-
-        // INIT SYSTEM & EVENT LISTENERS
-        window.onload = function() {
-            renderDashboardCharts();
-            renderTableData();
-            recalculatePipeline();
-            setupGlobalDragAndDrop();
-        };
-
-        // BỘ LẮNG NGHE KÉO THẢ FILE TOÀN CỤC (PREVENT DEFAULT BROWSER BEHAVIOR)
-        function setupGlobalDragAndDrop() {
-            // Chặn tuyệt đối trình duyệt mở file PDF/Image khi thả nhầm ngoài ô
-            window.addEventListener("dragover", function(e) {
-                e.preventDefault();
-            }, false);
-            window.addEventListener("drop", function(e) {
-                e.preventDefault();
-            }, false);
-
-            const dropZone = document.getElementById('dropZone');
-            if (!dropZone) return;
-
-            dropZone.addEventListener('dragenter', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.add('drag-over-active');
-            }, false);
-
-            dropZone.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.add('drag-over-active');
-            }, false);
-
-            dropZone.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.remove('drag-over-active');
-            }, false);
-
-            dropZone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.remove('drag-over-active');
-                
-                const files = e.dataTransfer.files;
-                if (files && files.length > 0) {
-                    processOcrFile(files[0]);
-                }
-            }, false);
-        }
-
-        function triggerFileInput() {
-            document.getElementById('ocrFileInput').click();
-        }
-
-        function handleOcrFileSelect(e) {
-            const files = e.target.files;
-            if (files && files.length > 0) processOcrFile(files[0]);
-        }
-
-        function processOcrFile(file) {
-            const statusBox = document.getElementById('ocrStatus');
-            const statusText = document.getElementById('ocrStatusText');
-            statusBox.classList.remove('hidden');
-            statusBox.className = "p-4 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-3";
-            statusText.innerText = `Đang tải file "${file.name}" (${(file.size/1024).toFixed(1)} KB) & AI trích xuất Bảng Thống Kê...`;
-
-            setTimeout(() => {
-                statusBox.className = "p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-800 flex items-center justify-between shadow-sm";
-                statusBox.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
-                        <span>AI OCR hoàn tất: Nhận diện 12 thanh d18 (Dầm D1) từ file "${file.name}" - Tổng khối lượng: 0.28 Tấn</span>
-                    </div>
-                    <button onclick="pushOcrResultToSystem()" class="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-emerald-700 shadow">Đưa Vào Bảng Khối Lượng</button>
-                `;
-            }, 1500);
-        }
-
-        function pushOcrResultToSystem() {
-            const newItem = {
-                id: Date.now(),
-                code: 'AF.61118',
-                name: 'Thép dầm D1 (AI OCR) d18mm',
-                unit: 'Tấn',
-                qty: 12,
-                len: 11.7,
-                total: 0.28,
-                price: 18500000
-            };
-            projectsData[currentProjectKey].items.push(newItem);
-            renderTableData();
-            recalculatePipeline();
-            alert('Đã đưa dữ liệu từ AI OCR vào Bảng Khối Lượng Dự Án!');
-            switchTab('boctach');
-        }
-
-        // RENDER CHARTS
-        function renderDashboardCharts() {
-            const ctxCat = document.getElementById('chartCategory').getContext('2d');
-            if (chartCatInstance) chartCatInstance.destroy();
-            chartCatInstance = new Chart(ctxCat, {
-                type: 'bar',
-                data: {
-                    labels: ['Bê tông', 'Cốt thép', 'Ván khuôn', 'Xây tô', 'Hoàn thiện'],
-                    datasets: [{
-                        label: 'Giá trị (Triệu VNĐ)',
-                        data: [65.25, 10.36, 21.6, 53.88, 0],
-                        backgroundColor: ['#2563eb', '#f59e0b', '#9333ea', '#10b981', '#64748b']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            const ctxProg = document.getElementById('chartProgress').getContext('2d');
-            if (chartProgInstance) chartProgInstance.destroy();
-            chartProgInstance = new Chart(ctxProg, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Đã duyệt', 'Đang thẩm tra', 'Chờ lập'],
-                    datasets: [{
-                        data: [1, 1, 1],
-                        backgroundColor: ['#10b981', '#2563eb', '#cbd5e1']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        // CHUYỂN DỰ ÁN DỮ LIỆU
-        function switchProject() {
-            currentProjectKey = document.getElementById('projectSelect').value;
-            const proj = projectsData[currentProjectKey];
-            document.getElementById('dashProjectTitle').innerText = proj.title;
-            
-            renderTableData();
-            recalculatePipeline();
-            resetSteelForm();
-        }
-
-        // CHUYỂN TAB NAVIGATION
-        function switchTab(tabId) {
-            const tabs = ['dashboard', 'boctach', 'tool', 'dutoan', 'tiendo'];
-            tabs.forEach(id => {
-                const el = document.getElementById('tab-' + id);
-                const nav = document.getElementById('nav-' + id);
-                if (el) el.classList.add('hidden');
-                if (nav) nav.classList.remove('active-tab');
-            });
-
-            const targetEl = document.getElementById('tab-' + tabId);
-            const targetNav = document.getElementById('nav-' + tabId);
-            if (targetEl) targetEl.classList.remove('hidden');
-            if (targetNav) targetNav.classList.add('active-tab');
-
-            if (tabId === 'tool') {
-                resetSteelForm();
-            }
-        }
-
-        // RENDER DỮ LIỆU BẢNG KHỐI LƯỢNG
-        function renderTableData() {
-            const tbody = document.getElementById('boctachTableBody');
-            tbody.innerHTML = '';
-
-            const items = projectsData[currentProjectKey].items;
-
-            if(items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400 italic">Chưa có khối lượng bóc tách cho dự án này. Hãy dùng Tool Tính Nhanh v2.6 để thêm dữ liệu!</td></tr>`;
-                document.getElementById('footTotalVolume').innerText = '0.00';
-                document.getElementById('footTotalPrice').innerText = '0 VNĐ';
-                return;
-            }
-
-            let sumPrice = 0;
-            let sumVol = 0;
-
-            items.forEach((item, index) => {
-                const rowPrice = item.total * item.price;
-                sumPrice += rowPrice;
-                sumVol += item.total;
-
-                const tr = document.createElement('tr');
-                tr.className = 'border-b bg-white hover:bg-slate-50 transition';
-                tr.innerHTML = `
-                    <td class="px-3 py-3 text-center font-medium">${index + 1}</td>
-                    <td class="px-3 py-3 font-semibold text-blue-600">${item.code}</td>
-                    <td class="px-4 py-3 font-medium text-slate-800">${item.name}</td>
-                    <td class="px-3 py-3 text-center">${item.unit}</td>
-                    <td class="px-3 py-3 text-right">${item.qty}</td>
-                    <td class="px-3 py-3 text-right">${item.len}</td>
-                    <td class="px-3 py-3 text-right font-bold text-slate-800">${item.total.toFixed(2)}</td>
-                    <td class="px-4 py-3 text-right">${item.price.toLocaleString('vi-VN')}</td>
-                    <td class="px-4 py-3 text-right font-bold text-slate-800">${rowPrice.toLocaleString('vi-VN')}</td>
-                    <td class="px-3 py-3 text-center">
-                        <button onclick="deleteRow(${index})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('footTotalVolume').innerText = sumVol.toFixed(2);
-            document.getElementById('footTotalPrice').innerText = sumPrice.toLocaleString('vi-VN') + ' VNĐ';
-        }
-
-        // XÓA HÀNG KHỐI LƯỢNG
-        function deleteRow(index) {
-            projectsData[currentProjectKey].items.splice(index, 1);
-            renderTableData();
-            recalculatePipeline();
-        }
-
-        // HÀM TÍNH TOÁN LIÊN KẾT TOÀN HỆ THỐNG (DATA PIPELINE)
-        function recalculatePipeline() {
-            const items = projectsData[currentProjectKey].items;
-            let steelTon = 0;
-            let concreteM3 = 0;
-            let formworkM2 = 0;
-            let totalPrice = 0;
-
-            items.forEach(item => {
-                const cost = item.total * item.price;
-                totalPrice += cost;
-
-                if(item.unit.toLowerCase().includes('tấn')) steelTon += item.total;
-                if(item.unit.toLowerCase().includes('m³')) concreteM3 += item.total;
-                if(item.unit.toLowerCase().includes('m²')) formworkM2 += item.total;
-            });
-
-            // Update Cards Dashboard
-            document.getElementById('dashTotalValue').innerText = totalPrice.toLocaleString('vi-VN') + ' VNĐ';
-            document.getElementById('dashSteel').innerText = steelTon.toFixed(2) + ' Tấn';
-            document.getElementById('dashConcrete').innerText = concreteM3.toFixed(1) + ' m³';
-            document.getElementById('dashFormwork').innerText = formworkM2.toFixed(1) + ' m²';
-
-            // Update Tab Dự Toán
-            const vat = totalPrice * 0.08;
-            const beforeVat = totalPrice - vat;
-            document.getElementById('dtXaydungBefore').innerText = Math.round(beforeVat).toLocaleString('vi-VN');
-            document.getElementById('dtXaydungVat').innerText = Math.round(vat).toLocaleString('vi-VN');
-            document.getElementById('dtXaydungTotal').innerText = Math.round(totalPrice).toLocaleString('vi-VN');
-        }
-
-        // SUB TOOL SWITCH
-        function switchSubTool(type) {
-            ['thep', 'ocr', 'cut'].forEach(id => {
-                document.getElementById('subtool-' + id).classList.add('hidden');
-                document.getElementById('subtool-btn-' + id).classList.remove('sub-tab-active');
-            });
-            document.getElementById('subtool-' + type).classList.remove('hidden');
-            document.getElementById('subtool-btn-' + type).classList.add('sub-tab-active');
-        }
-
-        // RESET FORM TOOL TÍNH NHANH (CLEAN STATE)
-        function resetSteelForm() {
-            document.getElementById('steelName').value = '';
-            document.getElementById('steelDia').value = '0';
-            document.getElementById('steelQty').value = '';
-            document.getElementById('steelLen').value = '';
-            document.getElementById('steelHook').value = '';
-
-            document.getElementById('resLength').innerText = '0.00 m';
-            document.getElementById('resLapsCount').innerText = '0 mối';
-            document.getElementById('resUnitWeight').innerText = '0.000 kg/m';
-            document.getElementById('resTotalWeight').innerText = '0.00 kg';
-            document.getElementById('resTotalTon').innerText = '(0.000 Tấn)';
-        }
-
-        // CALCULATE STEEL LIVE
-        function calculateSteel() {
-            const dia = parseInt(document.getElementById('steelDia').value) || 0;
-            const qty = parseFloat(document.getElementById('steelQty').value) || 0;
-            const len = parseFloat(document.getElementById('steelLen').value) || 0;
-            const lapRatio = parseInt(document.getElementById('steelLap').value) || 0;
-            const hookMm = parseFloat(document.getElementById('steelHook').value) || 0;
-
-            if(dia === 0 || qty === 0 || len === 0) {
-                document.getElementById('resLength').innerText = '0.00 m';
-                document.getElementById('resLapsCount').innerText = '0 mối';
-                document.getElementById('resUnitWeight').innerText = '0.000 kg/m';
-                document.getElementById('resTotalWeight').innerText = '0.00 kg';
-                document.getElementById('resTotalTon').innerText = '(0.000 Tấn)';
-                return;
-            }
-
-            let lapCount = 0;
-            if(len > 11.7) {
-                lapCount = Math.floor(len / 11.7);
-            }
-
-            const hookMeters = (hookMm * 2) / 1000;
-            const lapLengthMeters = (lapCount * (lapRatio * dia)) / 1000;
-            
-            const totalLenOneBar = len + hookMeters + lapLengthMeters;
-            const totalLengthAll = totalLenOneBar * qty;
-
-            const unitWeight = STEEL_WEIGHT_TABLE[dia] || 0;
-            const totalKg = totalLengthAll * unitWeight;
-            const totalTon = totalKg / 1000;
-
-            document.getElementById('resLength').innerText = totalLengthAll.toFixed(2) + ' m';
-            document.getElementById('resLapsCount').innerText = lapCount + ' mối';
-            document.getElementById('resUnitWeight').innerText = unitWeight.toFixed(3) + ' kg/m';
-            document.getElementById('resTotalWeight').innerText = totalKg.toFixed(2) + ' kg';
-            document.getElementById('resTotalTon').innerText = '(' + totalTon.toFixed(3) + ' Tấn)';
-        }
-
-        // DÙNG TOOL PUSH THÉP TRỰC TIẾP VÀO BẢNG KHỐI LƯỢNG
-        function pushSteelToSystem() {
-            const name = document.getElementById('steelName').value || 'Thép cấu kiện mới';
-            const dia = parseInt(document.getElementById('steelDia').value) || 0;
-            const qty = parseFloat(document.getElementById('steelQty').value) || 0;
-            const len = parseFloat(document.getElementById('steelLen').value) || 0;
-
-            if(dia === 0 || qty === 0 || len === 0) {
-                alert('Vui lòng nhập đầy đủ đường kính, số lượng và chiều dài thép trước khi thêm!');
-                return;
-            }
-
-            const unitWeight = STEEL_WEIGHT_TABLE[dia] || 0;
-            const lapRatio = parseInt(document.getElementById('steelLap').value) || 0;
-            const hookMm = parseFloat(document.getElementById('steelHook').value) || 0;
-            
-            let lapCount = (len > 11.7) ? Math.floor(len / 11.7) : 0;
-            const hookMeters = (hookMm * 2) / 1000;
-            const lapLengthMeters = (lapCount * (lapRatio * dia)) / 1000;
-            const totalLengthAll = (len + hookMeters + lapLengthMeters) * qty;
-            const totalTon = (totalLengthAll * unitWeight) / 1000;
-
-            const newItem = {
-                id: Date.now(),
-                code: 'AF.611' + dia,
-                name: `${name} (d${dia}mm)`,
-                unit: 'Tấn',
-                qty: qty,
-                len: len,
-                total: parseFloat(totalTon.toFixed(3)),
-                price: 18500000
-            };
-
-            projectsData[currentProjectKey].items.push(newItem);
-            renderTableData();
-            recalculatePipeline();
-
-            alert(`Đã liên kết thành công khối lượng ${totalTon.toFixed(3)} Tấn thép vào Bảng Khối Lượng & Dự Toán!`);
-            resetSteelForm();
-            switchTab('boctach');
-        }
-
-        function exportToExcel() { alert('Đã xuất file Bảng Khối Lượng TCVN (.xlsx) thành công!'); }
-        function exportReportPDF() { alert('Đã xuất Báo cáo Hồ sơ QS (.pdf) thành công!'); }
-    </script>
-</body>
-</html>
+/**
+ * ==============================================================================
+ * QS PRO v2.7 - Module AI Smart OCR & Tự Động Bóc Tách Cốt Thép TCVN
+ * Cập nhật: Đầy đủ các hàm tính toán, chuẩn hóa định mức, kiểm tra chiều dài 
+ * thanh thép chuẩn 11.7m và phân loại nhóm cấu kiện (Móng, Cột, Dầm, Sàn, Lanh tô).
+ * ==============================================================================
+ */
+
+class QSProSteelExtractorV27 {
+  constructor() {
+    // Bảng trọng lượng lý thuyết thép theo TCVN (kg/m)
+    this.steelDensityTable = {
+      6: 0.222,
+      8: 0.395,
+      10: 0.617,
+      12: 0.888,
+      14: 1.208,
+      16: 1.578,
+      18: 1.998,
+      20: 2.466,
+      22: 2.984,
+      25: 3.855,
+      28: 4.834,
+      32: 6.313
+    };
+    
+    this.defaultUnitPrices = {
+      'AF.61111': 18500000, // Thép móng
+      'AF.61113': 18500000, // Thép cột
+      'AF.61118': 18500000, // Thép dầm
+      'AF.61121': 18500000, // Thép sàn
+      'AF.61110': 18500000  // Thép chung/lanh tô
+    };
+  }
+
+  /**
+   * Xử lý dữ liệu thô từ OCR toàn bộ 77 trang bản vẽ
+   * @param {Array} ocrRawData - Mảng dữ liệu OCR đầu vào
+   * @returns {Array} Mảng khối lượng chi tiết sau khi chuẩn hóa
+   */
+  processOcrResult(ocrRawData) {
+    if (!Array.isArray(ocrRawData) || ocrRawData.length === 0) {
+      console.warn("QS PRO v2.7: Không có dữ liệu đầu vào từ OCR.");
+      return [];
+    }
+
+    let parsedItems = ocrRawData.map((row, index) => {
+      let diameter = this.extractDiameter(row.text || row.diameter);
+      let length = parseFloat(row.length) || 11.7;
+      let quantity = parseInt(row.quantity) || 1;
+      let category = row.category || 'Dầm';
+      let elementName = row.elementName || 'Đang cập nhật';
+
+      // Kiểm tra cảnh báo nếu chiều dài vượt quá thanh tiêu chuẩn 11.7m
+      let warningNote = length > 11.7 ? " (Cảnh báo: Lớn hơn 11.7m, cần kiểm tra nối chồng)" : "";
+
+      // Tính trọng lượng chuẩn xác theo TCVN (Kg đổi sang Tấn)
+      let unitWeightPerMeter = this.steelDensityTable[diameter] || (Math.pow(diameter, 2) / 162);
+      let totalWeightTon = (quantity * length * unitWeightPerMeter) / 1000;
+
+      let normCode = this.getNormCode(category);
+      let unitPrice = this.defaultUnitPrices[normCode] || 18500000;
+
+      return {
+        stt: index + 1,
+        mucDinhMuc: normCode,
+        tenCongViec: `Thép ${category} (${elementName}) d${diameter}mm - v2.7${warningNote}`,
+        dvt: 'Tấn',
+        soLuong: quantity,
+        chieuDai: length,
+        khoiLuong: parseFloat(totalWeightTon.toFixed(3)),
+        donGia: unitPrice,
+        thanhTien: parseFloat((totalWeightTon * unitPrice).toFixed(0))
+      };
+    });
+
+    return parsedItems;
+  }
+
+  /**
+   * Trích xuất đường kính thép từ chuỗi văn bản (VD: d18, phi 12, D10)
+   */
+  extractDiameter(text) {
+    if (!text) return 18;
+    let match = text.toString().match(/(?:d|phi)\s*(\d+)/i);
+    return match ? parseInt(match[1]) : 18;
+  }
+
+  /**
+   * Phân loại mã định mức theo hạng mục cấu kiện công trình
+   */
+  getNormCode(category) {
+    let catLower = (category || '').toLowerCase();
+    if (catLower.includes('móng') || catLower.includes('đài') || catLower.includes('cọc')) return 'AF.61111';
+    if (catLower.includes('cột')) return 'AF.61113';
+    if (catLower.includes('dầm')) return 'AF.61118';
+    if (catLower.includes('sàn')) return 'AF.61121';
+    return 'AF.61110'; // Lanh tô, cầu thang, cấu kiện phụ
+  }
+
+  /**
+   * Xuất toàn bộ bảng thành định dạng mảng dữ liệu đẩy vào giao diện Web
+   */
+  exportToTable(parsedData) {
+    let totalWeight = parsedData.reduce((sum, item) => sum + item.khoiLuong, 0);
+    let totalAmount = parsedData.reduce((sum, item) => sum + item.thanhTien, 0);
+
+    return {
+      items: parsedData,
+      summary: {
+        tongKhoiLuongTon: parseFloat(totalWeight.toFixed(3)),
+        tongThanhTienVND: totalAmount
+      }
+    };
+  }
+}
+
+// ==============================================================================
+// KHỞI CHẠY VÀ KIỂM THỬ MODULE V2.7
+// ==============================================================================
+const qsEngineV27 = new QSProSteelExtractorV27();
+
+// Dữ liệu mẫu kiểm thử từ bản vẽ 77 trang (VD: Dầm D1)
+const sampleOcrInput = [
+  { category: 'Dầm', elementName: 'D1', text: 'Thép chủ d18', quantity: 12, length: 11.7 },
+  { category: 'Dầm', elementName: 'D1', text: 'Thép đai d8', quantity: 45, length: 1.2 }
+];
+
+let resultV27 = qsEngineV27.processOcrResult(sampleOcrInput);
+let finalTable = qsEngineV27.exportToTable(resultV27);
+
+console.log("=== KẾT QUẢ XUẤT BẢNG QS PRO v2.7 ===");
+console.table(finalTable.items);
+console.log("Tổng khối lượng (Tấn):", finalTable.summary.tongKhoiLuongTon);
+console.log("Tổng thành tiền (VNĐ):", finalTable.summary.tongThanhTienVND.toLocaleString('vi-VN'));
