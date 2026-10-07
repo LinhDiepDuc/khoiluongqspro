@@ -430,4 +430,18 @@ body{font-size:15px}
 .account-payment-note{display:grid;gap:5px;margin-top:15px;padding:14px 16px;border:1px solid #eadfbd;border-radius:10px;background:#fcf8ed;color:#786840;font-size:13px;line-height:1.55}
 .account-payment-note strong{font-size:14px}
 @media(max-width:950px){.account-plan-grid{grid-template-columns:1fr}.account-plan-card{min-height:0}.account-plan-card p{min-height:0}}
+.project-list{display:grid;gap:3px;max-height:30vh;overflow:auto}
+.project-row{display:flex;align-items:center;gap:2px;border-radius:8px}
+.project-row.is-active{background:#27333c}
+.project-row .project-link{min-width:0;flex:1;background:transparent}
+.project-row.is-active .project-link{color:#f0dba9}
+.project-row .project-link span{font-variant-numeric:tabular-nums}
+.project-delete{width:28px;height:28px;flex:none;border:0;border-radius:6px;background:transparent;color:#839099;font-size:16px;cursor:pointer}
+.project-delete:hover{background:#3a3030;color:#f2b8ad}
+.project-overview-values{display:flex;gap:40px;margin:18px 0 8px}
+.project-overview-values>div{display:grid;gap:6px}
+.project-overview-values small{color:#879399;font-size:10px;font-weight:700;letter-spacing:.08em}
+.project-overview-values strong{color:#34464b;font:700 19px var(--display)}
+.project-overview-values span{color:#88969a;font-size:11px}
+.form-grid label[hidden]{display:none}
 
