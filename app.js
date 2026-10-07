@@ -120,7 +120,7 @@ function setPdfMode(mode){
   if(pdfMarkup)pdfMarkup.style.pointerEvents=mode?'auto':'none';
   if(mode==='calibrate')setPdfHint('Đang đặt tỷ lệ: bấm hai đầu của một kích thước đã biết trên bản vẽ.');
   else if(mode==='measure')setPdfHint('Đang đo: bấm hai đầu một đoạn thép. Sau điểm thứ hai sẽ tạo dòng khối lượng.');
-  else if(mode==='takeoff-area'){setTakeoffHint('Đang vẽ vùng: bấm lần lượt các góc quanh cấu kiện, tối thiểu 3 điểm.');$('#takeoffFinishArea').hidden=false;$('#takeoffFinishArea').disabled=true;$('#takeoffUndoPoint').hidden=false}
+  else if(mode==='takeoff-area'){setTakeoffHint('Đang vẽ vùng: bấm lần lượt các góc quanh cấu kiện, tối thiểu 3 điểm. Enter để chốt · Backspace bỏ điểm cuối · Esc để thoát.');$('#takeoffFinishArea').hidden=false;$('#takeoffFinishArea').disabled=true;$('#takeoffUndoPoint').hidden=true}
   else setPdfHint('Chọn “Bắt đầu đo” rồi bấm lần lượt vào hai đầu đoạn thép.');
   if(mode!=='takeoff-area'){$('#takeoffFinishArea').hidden=true;$('#takeoffUndoPoint').hidden=true}
 }
@@ -145,7 +145,7 @@ async function renderPdfPage(){
     pdfMarkup.width=viewport.width;pdfMarkup.height=viewport.height;pdfMarkup.style.width=cssWidth+'px';pdfMarkup.style.height=cssHeight+'px';
     pdfStack.style.width=cssWidth+'px';pdfStack.style.height=cssHeight+'px';$('#pdfEmpty').hidden=true;pdfStack.hidden=false;
     await page.render({canvasContext:pdfCanvas.getContext('2d'),viewport}).promise;if(token!==pdfRenderToken)return;
-    const textContent=await page.getTextContent(),text=textContent.items.map(item=>item.str).filter(Boolean).join(' ').replace(/\s{2,}/g,' ').trim();
+    const textContent=await page.getTextContent(),text=textContent.items.map(item=>item.str).filter(Boolean).join(' ').replace(/\s{2,}/g,' ').trim();showDimensionSuggestions(text);
     $('#pdfTextStatus').textContent=text?'Đọc được '+textContent.items.filter(item=>item.str).length+' đoạn chữ trên trang '+pdfPageNumber+'.':'Trang này không có lớp chữ chọn được; có thể là bản scan.';
     $('#pdfExtract').textContent=text?text.slice(0,7000)+(text.length>7000?'\n… (đã rút gọn phần xem trước)':''):'Không tìm thấy chữ máy đọc được. Anh vẫn có thể xem hình, hiệu chuẩn tỷ lệ và nhập/đo thủ công.';
     $('#pdfPageLabel').textContent=pdfPageNumber+' / '+pdfDocument.numPages;$('#steelPdfInfo').textContent=pdfDocument.numPages+' trang · Trang đang xem '+pdfPageNumber;
@@ -157,6 +157,24 @@ function pdfPointFromEvent(event){
 }
 function normalizedDistance(a,b){const size=pdfPageDimensions.get(pdfPageNumber)||{width:1,height:1};return Math.hypot((b.x-a.x)*size.width,(b.y-a.y)*size.height)}
 function normalizedPolygonArea(points){const size=pdfPageDimensions.get(pdfPageNumber)||{width:1,height:1};let twice=0;for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];twice+=(a.x*size.width)*(b.y*size.height)-(b.x*size.width)*(a.y*size.height)}return Math.abs(twice)/2}
+function polygonHasCrossing(points){
+  const cross=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x),on=(a,b,p)=>Math.min(a.x,b.x)-1e-8<=p.x&&p.x<=Math.max(a.x,b.x)+1e-8&&Math.min(a.y,b.y)-1e-8<=p.y&&p.y<=Math.max(a.y,b.y)+1e-8;
+  const intersects=(a,b,c,d)=>{const ab1=cross(a,b,c),ab2=cross(a,b,d),cd1=cross(c,d,a),cd2=cross(c,d,b);if(ab1*ab2<0&&cd1*cd2<0)return true;return(Math.abs(ab1)<1e-8&&on(a,b,c))||(Math.abs(ab2)<1e-8&&on(a,b,d))||(Math.abs(cd1)<1e-8&&on(c,d,a))||(Math.abs(cd2)<1e-8&&on(c,d,b))};
+  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){if(j===(i+1)%points.length||i===(j+1)%points.length)continue;if(intersects(points[i],points[(i+1)%points.length],points[j],points[(j+1)%points.length]))return true}return false;
+}
+function showDimensionSuggestions(text){
+  const counts=new Map(),pattern=/(?<!\d)(\d{1,2}[.,]\d{3}|\d{4,5})(?!\d)/g;
+  for(const match of text.matchAll(pattern)){const value=Number(match[1].replace(/[.,]/g,''));if(value>=1000&&value<=50000)counts.set(value,(counts.get(value)||0)+1)}
+  const choices=[...counts].sort((a,b)=>b[1]-a[1]||a[0]-b[0]).slice(0,6),wrap=$('#pdfDimensionSuggestions'),list=$('#pdfDimensionChoices');
+  list.innerHTML=choices.map(([mm])=>'<button type="button" data-dimension-mm="'+mm+'">'+fmt(mm)+' mm</button>').join('');wrap.hidden=!choices.length;
+}
+function updateTakeoffPreview(){
+  if(pdfPoints.length<3)return;const kind=$('#takeoffKind').value,spec=takeoffSpecs[kind],scale=pdfPageCalibrations.get(pdfPageNumber)||0;if(!scale)return;
+  const area=normalizedPolygonArea(pdfPoints)/(scale*scale),thickness=Number($('#takeoffThickness').value)||0,count=Math.max(1,Math.floor(Number($('#takeoffCount').value)||1));
+  if(polygonHasCrossing(pdfPoints)){setTakeoffHint('Đường đo đang tự cắt nhau. Bấm “Bỏ điểm vừa chọn” để sửa trước khi chốt.',true);return}
+  if(spec.needsThickness&&!thickness){setTakeoffHint('Vùng hiện khoảng '+fmt(area)+' m². Nhập chiều dày để xem khối lượng m³.');return}
+  setTakeoffHint('Tạm tính '+fmt(takeoffValue(kind,area,thickness)*count)+' '+spec.unit+' · '+fmt(area)+' m²'+(spec.needsThickness?' × '+fmt(thickness)+' m':'')+(count>1?' × '+count:'')+'. Enter để chốt · Backspace bỏ điểm cuối · Esc thoát.');
+}
 function drawPdfMarks(){
   if(!pdfMarkup)return;const ctx=pdfMarkup.getContext('2d'),w=pdfMarkup.width,h=pdfMarkup.height;ctx.clearRect(0,0,w,h);
   const marks=pdfPageMarks.get(pdfPageNumber)||[];
@@ -165,7 +183,7 @@ function drawPdfMarks(){
 }
 async function handlePdfPoint(event){
   if(!pdfMode||!pdfDocument)return;const point=pdfPointFromEvent(event);
-  if(pdfMode==='takeoff-area'){pdfPoints.push(point);$('#takeoffUndoPoint').hidden=pdfPoints.length===0;$('#takeoffFinishArea').disabled=pdfPoints.length<3;drawPdfMarks();setTakeoffHint('Đã chọn '+pdfPoints.length+' điểm. Chọn thêm các góc quanh vùng; cần ít nhất 3 điểm.');return}
+  if(pdfMode==='takeoff-area'){pdfPoints.push(point);$('#takeoffUndoPoint').hidden=false;$('#takeoffFinishArea').disabled=pdfPoints.length<3;drawPdfMarks();if(pdfPoints.length>=3)updateTakeoffPreview();else setTakeoffHint('Đã chọn '+pdfPoints.length+' điểm. Tiếp tục bấm các góc quanh cấu kiện.');return}
   if(!pdfPoints.length){pdfPoints=[point];drawPdfMarks();return}
   const first=pdfPoints[0],distanceFraction=normalizedDistance(first,point);pdfPoints=[];
   if(distanceFraction<.001){setPdfHint('Hai điểm quá gần nhau. Hãy chọn lại hai điểm cách xa hơn.',true);drawPdfMarks();return}
@@ -182,6 +200,7 @@ async function handlePdfPoint(event){
 }
 function finishTakeoffArea(){
   if(pdfMode!=='takeoff-area')return;if(pdfPoints.length<3){setTakeoffHint('Cần ít nhất 3 điểm để khép kín một vùng.',true);return}
+  if(polygonHasCrossing(pdfPoints)){setTakeoffHint('Đường bao tự cắt nhau nên diện tích không đáng tin cậy. Hãy bỏ điểm cuối và sửa đường đo.',true);return}
   const kind=$('#takeoffKind').value,spec=takeoffSpecs[kind],scale=pdfPageCalibrations.get(pdfPageNumber)||0,thickness=Number($('#takeoffThickness').value)||0,count=Math.max(1,Math.floor(Number($('#takeoffCount').value)||1));
   if(!scale){setTakeoffHint('Trang này chưa được hiệu chuẩn. Hãy đặt tỷ lệ trước khi đo.',true);return}
   if(spec.needsThickness&&!(thickness>0)){setTakeoffHint('Nhập chiều dày cấu kiện để tính thể tích chính xác.',true);$('#takeoffThickness').focus();return}
@@ -189,7 +208,9 @@ function finishTakeoffArea(){
   const singleValue=takeoffValue(kind,area,thickness),value=singleValue*count,label=$('#takeoffLabel').value.trim()||spec.label+' · trang '+pdfPageNumber,baseFormula=spec.needsThickness?fmt(area)+' m² × '+fmt(thickness)+' m':fmt(area)+' m²',formula=(count>1?baseFormula+' × '+count:baseFormula)+' = '+fmt(value)+' '+spec.unit;
   const points=pdfPoints.map(p=>({...p})),marks=pdfPageMarks.get(pdfPageNumber)||[];marks.push({points,kind:'takeoff',label:fmt(value)+' '+spec.unit});pdfPageMarks.set(pdfPageNumber,marks);
   takeoffs.push({id:'to-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),fileName:$('#steelFileName').textContent,page:pdfPageNumber,kind,category:spec.category,label,area:Number(area.toFixed(4)),thickness,count,value:Number(value.toFixed(4)),unit:spec.unit,formula,price:0,addedToBoq:false});
-  pdfPoints=[];setPdfMode('');renderTakeoffs();persist();drawPdfMarks();setTakeoffHint('Đã ghi '+fmt(value)+' '+spec.unit+' từ trang '+pdfPageNumber+'. Rà đường bao và phần trừ trước khi đưa vào BOQ.');
+  pdfPoints=[];renderTakeoffs();persist();drawPdfMarks();
+  if($('#takeoffContinuous').checked){$('#takeoffFinishArea').disabled=true;$('#takeoffUndoPoint').hidden=true;setTakeoffHint('Đã lưu '+fmt(value)+' '+spec.unit+'. Đang ở chế độ đo liên tục: bấm các góc vùng kế tiếp; Enter để chốt · Esc để dừng.')}
+  else{setPdfMode('');setTakeoffHint('Đã ghi '+fmt(value)+' '+spec.unit+' từ trang '+pdfPageNumber+'. Rà đường bao và phần trừ trước khi đưa vào BOQ.')}
 }
 async function openSteelPdf(file){
   if(!file)return;if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf'){toast('Anh hãy chọn một file PDF.');return}
@@ -215,10 +236,14 @@ $('#setScaleMode').addEventListener('click',()=>{if(!pdfDocument){toast('Tải b
 $('#measureMode').addEventListener('click',()=>{if(!pdfDocument){toast('Tải bản vẽ PDF lên trước.');return}if(!(pdfPageCalibrations.get(pdfPageNumber)>0)){setPdfHint('Hiệu chuẩn tỷ lệ cho trang đang xem trước khi đo.',true);return}setPdfMode('measure')});
 $('#cancelPdfMode').addEventListener('click',()=>setPdfMode(''));
 pdfMarkup.addEventListener('click',handlePdfPoint);
-$('#takeoffKind').addEventListener('change',()=>{const kind=$('#takeoffKind').value;$('#takeoffThicknessField').hidden=!takeoffSpecs[kind].needsThickness;const guidance={'concrete-area':'Đo diện tích mặt bê tông; nếu cần khối lượng m³, chọn loại bê tông vùng × chiều dày.','concrete-volume':'Đo đường bao trên mặt bằng rồi nhập chiều dày sàn/cấu kiện; công cụ nhân diện tích × chiều dày.','formwork-area':'Đo từng mặt tiếp xúc bê tông trên mặt đứng/chi tiết; không tự nhân số mặt hoặc trừ lỗ mở.','masonry-area':'Đo mặt đứng tường; chia vùng quanh cửa và trừ lỗ mở theo quy tắc đo của dự án.','masonry-volume':'Đo mặt đứng tường, nhập chiều dày xây; diện tích × chiều dày ra m³.'};setTakeoffHint(guidance[kind])});
+$('#pdfDimensionChoices').addEventListener('click',event=>{const button=event.target.closest('[data-dimension-mm]');if(!button)return;$('#knownDistanceMm').value=button.dataset.dimensionMm;$('#setScaleMode').click()});
+document.querySelectorAll('[data-takeoff-preset]').forEach(button=>button.addEventListener('click',()=>{const kind=button.dataset.takeoffPreset;$('#takeoffKind').value=kind;$('#takeoffKind').dispatchEvent(new Event('change'));$('#takeoffLabel').value=button.dataset.presetLabel;document.querySelectorAll('[data-takeoff-preset]').forEach(item=>item.classList.toggle('active',item===button));if(takeoffSpecs[kind].needsThickness&&!(Number($('#takeoffThickness').value)>0)){setTakeoffHint('Nhập chiều dày thực tế theo bản vẽ/ghi chú kỹ thuật; QS Pro không tự giả định chiều dày.');$('#takeoffThickness').focus();return}if(!pdfDocument){setTakeoffHint('Tải PDF lên và hiệu chuẩn trang trước khi đo.',true);return}if(!(pdfPageCalibrations.get(pdfPageNumber)>0)){setTakeoffHint('Hiệu chuẩn trang bằng một kích thước đã biết trước khi đo.',true);return}setPdfMode('takeoff-area')}));
+$('#takeoffKind').addEventListener('change',()=>{const kind=$('#takeoffKind').value;$('#takeoffThicknessField').hidden=!takeoffSpecs[kind].needsThickness;document.querySelectorAll('[data-takeoff-preset]').forEach(button=>button.classList.toggle('active',button.dataset.takeoffPreset===kind));const guidance={'concrete-area':'Đo diện tích mặt bê tông; nếu cần khối lượng m³, chọn loại bê tông vùng × chiều dày.','concrete-volume':'Đo đường bao trên mặt bằng rồi nhập chiều dày sàn/cấu kiện; công cụ nhân diện tích × chiều dày.','formwork-area':'Đo từng mặt tiếp xúc bê tông trên mặt đứng/chi tiết; không tự nhân số mặt hoặc trừ lỗ mở.','masonry-area':'Đo mặt đứng tường; chia vùng quanh cửa và trừ lỗ mở theo quy tắc đo của dự án.','masonry-volume':'Đo mặt đứng tường, nhập chiều dày xây; diện tích × chiều dày ra m³.'};setTakeoffHint(guidance[kind])});
 $('#takeoffAreaMode').addEventListener('click',()=>{if(!pdfDocument){toast('Tải bản vẽ PDF lên trước.');return}if(!(pdfPageCalibrations.get(pdfPageNumber)>0)){setTakeoffHint('Hiệu chuẩn tỷ lệ trang này trước khi đo vùng.',true);return}if(takeoffSpecs[$('#takeoffKind').value].needsThickness&&!(Number($('#takeoffThickness').value)>0)){setTakeoffHint('Nhập chiều dày trước để không tạo ra thể tích thiếu dữ liệu.',true);$('#takeoffThickness').focus();return}setPdfMode('takeoff-area')});
 $('#takeoffFinishArea').addEventListener('click',finishTakeoffArea);
 $('#takeoffUndoPoint').addEventListener('click',()=>{pdfPoints.pop();$('#takeoffFinishArea').disabled=pdfPoints.length<3;$('#takeoffUndoPoint').hidden=pdfPoints.length===0;drawPdfMarks();setTakeoffHint('Đã bỏ điểm cuối. Hiện còn '+pdfPoints.length+' điểm.')});
+$('#takeoffThickness').addEventListener('input',updateTakeoffPreview);$('#takeoffCount').addEventListener('input',updateTakeoffPreview);
+document.addEventListener('keydown',event=>{if(pdfMode!=='takeoff-area'||(event.target instanceof Element&&event.target.closest('input,select,textarea,[contenteditable="true"]')))return;if(event.key==='Enter'&&pdfPoints.length>=3){event.preventDefault();event.stopImmediatePropagation();finishTakeoffArea()}else if(event.key==='Backspace'&&pdfPoints.length){event.preventDefault();event.stopImmediatePropagation();$('#takeoffUndoPoint').click()}else if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();setPdfMode('')}});
 $('#takeoffRows').addEventListener('click',event=>{const add=event.target.closest('[data-add-takeoff]'),remove=event.target.closest('[data-delete-takeoff]');if(add){const record=takeoffs.find(x=>x.id===add.dataset.addTakeoff);if(record&&!record.addedToBoq)addTakeoffToBoq(record)}else if(remove){takeoffs=takeoffs.filter(x=>x.id!==remove.dataset.deleteTakeoff);renderTakeoffs();persist()}});
 $('#addAllTakeoffs').addEventListener('click',()=>{const pending=takeoffs.filter(x=>!x.addedToBoq);if(!pending.length)return;pending.forEach(addTakeoffToBoq);toast('Đã đưa '+pending.length+' dòng đo vào BOQ. Đơn giá đang để 0 để QS cập nhật.');});
 $('#clearTakeoffs').addEventListener('click',()=>{if(!takeoffs.length)return;if(!confirm('Xóa toàn bộ phép đo từ PDF của dự án này? Các hạng mục đã đưa vào BOQ sẽ được giữ nguyên.'))return;takeoffs=[];renderTakeoffs();persist();toast('Đã xóa nhật ký phép đo PDF.')});

@@ -74,15 +74,18 @@
               <div class="steel-panel-heading"><span class="steel-step">01</span><div><small>HIỆU CHUẨN BẢN VẼ</small><h3>Đặt tỷ lệ đo</h3></div></div>
               <p class="steel-help">Chọn hai điểm trên bản vẽ có khoảng cách đã biết để quy đổi pixel sang mét.</p>
               <label class="steel-field">Khoảng cách thực tế (mm)<input id="knownDistanceMm" type="number" min="1" step="any" placeholder="Ví dụ: 6000"></label>
+              <div class="pdf-dimension-suggestions" id="pdfDimensionSuggestions" hidden><small>GỢI Ý KÍCH THƯỚC ĐỌC TỪ PDF · KIỂM TRA TRÊN BẢN VẼ</small><div id="pdfDimensionChoices"></div></div>
               <button class="button button-outline steel-wide" id="setScaleMode">Chọn 2 điểm chuẩn trên bản vẽ</button>
               <div class="steel-scale-status" id="steelScaleStatus">Chưa đặt tỷ lệ</div>
               <div class="steel-divider"></div>
               <div class="steel-panel-heading"><span class="steel-step">02</span><div><small>ĐO TRÊN BẢN VẼ</small><h3>Bê tông · ván khuôn · xây</h3></div></div>
-              <p class="steel-help">Chọn loại đo. Với m², bấm các góc quanh vùng rồi hoàn tất; với m³, nhập chiều dày cấu kiện. Mỗi vùng được ghi riêng theo trang.</p>
-              <label class="steel-field">Loại công tác<select id="takeoffKind"><option value="concrete-area">Bê tông · diện tích vùng (m²)</option><option value="concrete-volume">Bê tông · vùng × chiều dày (m³)</option><option value="formwork-area">Ván khuôn · diện tích mặt (m²)</option><option value="masonry-area">Xây · diện tích tường (m²)</option><option value="masonry-volume">Xây · diện tích × chiều dày (m³)</option></select></label>
+              <p class="steel-help">Chọn nhanh hạng mục để bắt đầu. Một trang chỉ cần hiệu chuẩn một lần; bật đo liên tục để vẽ nhiều vùng cùng loại mà không phải khởi động lại.</p>
+              <div class="takeoff-presets" role="group" aria-label="Chọn nhanh loại công tác"><button type="button" class="takeoff-preset" data-takeoff-preset="concrete-volume" data-preset-label="Sàn bê tông">▦ <span>Sàn bê tông</span><small>m³</small></button><button type="button" class="takeoff-preset" data-takeoff-preset="formwork-area" data-preset-label="Ván khuôn">▤ <span>Ván khuôn</span><small>m²</small></button><button type="button" class="takeoff-preset" data-takeoff-preset="masonry-area" data-preset-label="Tường xây">▥ <span>Tường xây</span><small>m²</small></button></div>
+              <details class="takeoff-advanced"><summary>Chọn loại đo khác</summary><label class="steel-field">Loại công tác<select id="takeoffKind"><option value="concrete-area" selected>Bê tông · diện tích vùng (m²)</option><option value="concrete-volume">Bê tông · diện tích × chiều dày (m³)</option><option value="formwork-area">Ván khuôn · diện tích mặt (m²)</option><option value="masonry-area">Xây · diện tích tường (m²)</option><option value="masonry-volume">Xây · diện tích × chiều dày (m³)</option></select></label></details>
               <label class="steel-field takeoff-thickness-field" id="takeoffThicknessField" hidden>Chiều dày cấu kiện (m)<input id="takeoffThickness" type="number" min="0.001" step="any" placeholder="Ví dụ: 0,12"></label>
               <label class="steel-field">Số cấu kiện giống nhau<input id="takeoffCount" type="number" min="1" step="1" value="1"></label>
               <label class="steel-field">Tên / vị trí đo<input id="takeoffLabel" maxlength="100" placeholder="Ví dụ: Sàn tầng 2 · trục A–C"></label>
+              <label class="takeoff-continuous"><input id="takeoffContinuous" type="checkbox" checked><span><strong>Đo liên tục</strong><small>Lưu vùng xong, vẽ vùng kế tiếp cùng loại</small></span></label>
               <button class="button button-primary steel-wide" id="takeoffAreaMode">＋ Đo vùng trên bản vẽ</button>
               <button class="button button-outline steel-wide" id="takeoffFinishArea" hidden>Hoàn tất vùng đang đo</button>
               <button class="button button-outline steel-wide" id="takeoffUndoPoint" hidden>↶ Bỏ điểm vừa chọn</button>
