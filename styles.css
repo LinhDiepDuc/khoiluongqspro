@@ -338,6 +338,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media(prefers-reduced-motion:reduce){.steel-upload,.steel-wide{transition:none}}
 
+/* Multi-trade PDF takeoff */
+.takeoff-schedule-panel{border-color:#dfe8e4;background:linear-gradient(180deg,#fff,#fcfefd)}
+.steel-takeoff-summary,.steel-takeoff-totals{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.steel-takeoff-summary span,.steel-takeoff-totals span{padding:7px 9px;border:1px solid #e2ebe6;border-radius:8px;background:#f5f9f7;color:#64766e;font-size:11px}
+.steel-takeoff-summary strong,.steel-takeoff-totals strong{margin-left:5px;color:#2c7258;font-variant-numeric:tabular-nums}
+.takeoff-table{min-width:860px}
+.takeoff-table td:nth-child(2){min-width:180px}
+.takeoff-table td:nth-child(4){min-width:210px;color:#718078;font-size:11px}
+.takeoff-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;white-space:nowrap}
+.takeoff-boq-button{min-height:30px;height:auto;padding:6px 9px;font-size:10px}
+.takeoff-boq-button:disabled{border-color:#dce9e1;background:#f2f7f3;color:#4f8066;opacity:1;cursor:default}
+.steel-control-panel .steel-field{margin-top:10px}
+.steel-control-panel .steel-wide{min-height:39px}
+#takeoffHint{border-left-color:#4f9c7b}
+#takeoffHint.is-error{border-left-color:#c87560;background:#fbf2f0;color:#925c51}
+#takeoffThicknessField[hidden]{display:none}
+@media(max-width:850px){.takeoff-table{min-width:760px}.takeoff-schedule-panel .steel-schedule-header{display:flex;flex-wrap:wrap}.takeoff-schedule-panel .steel-schedule-header>button{width:100%}}
+
 /* Clearer reading and always-available account controls */
 body{font-size:15px}
 .workspace small,.nav-label{font-size:11px}
