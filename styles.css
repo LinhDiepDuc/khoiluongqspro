@@ -338,3 +338,57 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media(prefers-reduced-motion:reduce){.steel-upload,.steel-wide{transition:none}}
 
+/* Clearer reading and always-available account controls */
+body{font-size:15px}
+.workspace small,.nav-label{font-size:11px}
+.workspace strong{font-size:14px}
+.nav-item{font-size:14px}
+.project-link{font-size:13px}
+.help-card>strong{font-size:13px}
+.help-card p{font-size:12px}
+.help-card button{font-size:12px}
+.profile strong{font-size:12px}
+.profile small{font-size:11px}
+.breadcrumbs{font-size:13px}
+.today{font-size:12px}
+.eyebrow{font-size:11px}
+.page-subtitle{font-size:14px}
+.button{font-size:13px}
+.hero-kicker{font-size:11px}
+.hero-card p,.skills-banner p{font-size:13px}
+.hero-button{font-size:12px}
+.stat-top{font-size:12px}
+.stat-foot{font-size:11px}
+.project-meta{font-size:12px}
+.progress-label{font-size:11px}
+.project-footer{font-size:11px}
+.account-menu-wrap{position:relative}
+.account-menu{position:absolute;z-index:20;top:calc(100% + 12px);right:0;width:min(330px,calc(100vw - 28px));padding:16px;border:1px solid #e2e8e8;border-radius:12px;background:#fff;color:#25323a;box-shadow:0 16px 45px rgba(18,29,39,.18)}
+.account-menu[hidden]{display:none}
+.account-menu-heading{color:#879399;font-size:11px;font-weight:700;letter-spacing:.12em}
+.account-menu-profile{display:flex;align-items:center;gap:12px;margin:14px 0;padding-bottom:14px;border-bottom:1px solid #edf0f0}
+.account-menu-avatar{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:50%;background:#dfc88f;color:#29343b;font-size:14px;font-weight:700}
+.account-menu-profile>span:last-child{display:grid;gap:5px;min-width:0}
+.account-menu-profile strong{font-size:15px}
+.account-menu-profile small{max-width:240px;overflow-wrap:anywhere;color:#7c888e;font-size:13px}
+.account-menu-role{display:flex;justify-content:space-between;gap:12px;color:#748087;font-size:13px}
+.account-menu-role strong{color:#37474d;font-size:13px}
+.account-menu-logout{width:100%;display:flex;align-items:center;gap:10px;margin-top:14px;padding:11px 10px;border:1px solid #f0dfdc;border-radius:9px;background:#fff8f7;color:#a75146;text-align:left;font:600 14px var(--font);cursor:pointer}
+.account-menu-logout:hover{background:#fdf0ee}
+.steel-notice p,.steel-upload p,.pdf-empty,.steel-help,.steel-field,.steel-scale-status,.steel-measure-hint,.steel-schedule-header p,.steel-empty-state,.steel-footnote{font-size:13px}
+.steel-upload h2{font-size:22px}
+.steel-upload small,.steel-filecopy small,.steel-drawing-toolbar small,.pdf-page-controls span,.pdf-text-panel summary,.steel-panel-heading small,.steel-panel-heading h3,.steel-cancel{font-size:12px}
+.steel-filecopy strong,.steel-drawing-toolbar strong{font-size:14px}
+.steel-field input,.steel-field select{font-size:13px}
+.steel-schedule-header h2{font-size:20px}
+.steel-summary small{font-size:10px}
+.steel-table th{font-size:10px}
+.steel-table td,.steel-table input,.steel-table select{font-size:12px}
+.steel-breakdown-chip{font-size:11px}
+@media(max-width:700px){
+  .page-subtitle{font-size:13px}
+  .hero-card p,.skills-banner p{font-size:12px}
+  .stat-top{font-size:11px}
+  .steel-summary small{font-size:9px}
+}
+
