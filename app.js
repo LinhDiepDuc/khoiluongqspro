@@ -8,14 +8,14 @@ const seed = [
 const demoMode = location.protocol === 'file:' || new URLSearchParams(location.search).has('demo');
 const config=window.QS_PRO_SUPABASE_CONFIG||{},configured=/^https:\/\/.+/.test(config.url||'')&&(config.anonKey||'').length>20;
 const supabaseClient=configured&&window.supabase?.createClient?window.supabase.createClient(config.url,config.anonKey):null;
-let user = null, passwordRecovery = new URLSearchParams(location.hash.slice(1)).get('type')==='recovery', items = read('qspro-items', seed), project = read('qspro-project', {name:'Riverside Residence', type:'Nhà ở cao tầng', location:'TP. Hồ Chí Minh'}), settings = read('qspro-settings', {waste:0, overhead:5, contingency:2, vat:8}), filterText = '', activeCategory = 'Tất cả', saveTimer;
+let user = null, passwordRecovery = new URLSearchParams(location.hash.slice(1)).get('type')==='recovery', items = read('qspro-items', seed), steelBars = read('qspro-steel-bars', []), project = read('qspro-project', {name:'Riverside Residence', type:'Nhà ở cao tầng', location:'TP. Hồ Chí Minh'}), settings = read('qspro-settings', {waste:0, overhead:5, contingency:2, vat:8}), filterText = '', activeCategory = 'Tất cả', saveTimer;
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}}
 const $=s=>document.querySelector(s),fmt=n=>new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2}).format(Number(n)||0),cash=n=>fmt(Math.round(Number(n)||0)),total=()=>items.reduce((s,x)=>s+(+x.quantity||0)*(+x.price||0),0),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),2600)}
 function showMessage(text,error=false){const el=$('#authMessage');el.textContent=text;el.classList.toggle('error',error);el.hidden=false}
-async function saveCloud(){if(!user||demoMode)return;const {error}=await supabaseClient.from('qspro_workspaces').upsert({user_id:user.id,workspace:{items,project,settings},updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)toast('Chưa đồng bộ được dữ liệu. Hãy kiểm tra kết nối rồi thử lại.')}
-function persist(){if(demoMode){localStorage.setItem('qspro-items',JSON.stringify(items));localStorage.setItem('qspro-project',JSON.stringify(project));localStorage.setItem('qspro-settings',JSON.stringify(settings));return}if(!user)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveCloud,500)}
-function navigate(page){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id===`page-${page}`));document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.dataset.page===page));const names={overview:'Tổng quan',takeoff:'Bóc tách khối lượng',skills:'Kỹ năng QS',library:'Thư viện tài liệu'};$('#crumb').textContent=names[page];history.replaceState(null,'',`#${page}`);window.scrollTo(0,0)}
+async function saveCloud(){if(!user||demoMode)return;const {error}=await supabaseClient.from('qspro_workspaces').upsert({user_id:user.id,workspace:{items,steelBars,project,settings},updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)toast('Chưa đồng bộ được dữ liệu. Hãy kiểm tra kết nối rồi thử lại.')}
+function persist(){if(demoMode){localStorage.setItem('qspro-items',JSON.stringify(items));localStorage.setItem('qspro-steel-bars',JSON.stringify(steelBars));localStorage.setItem('qspro-project',JSON.stringify(project));localStorage.setItem('qspro-settings',JSON.stringify(settings));return}if(!user)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveCloud,500)}
+function navigate(page){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id===`page-${page}`));document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.dataset.page===page));const names={overview:'Tổng quan',takeoff:'Bóc tách khối lượng',steel:'Tính thép từ PDF',skills:'Kỹ năng QS',library:'Thư viện tài liệu'};$('#crumb').textContent=names[page];history.replaceState(null,'',`#${page}`);window.scrollTo(0,0);if(page==='steel')renderSteelRows()}
 document.querySelectorAll('[data-page]').forEach(e=>e.addEventListener('click',()=>navigate(e.dataset.page)));
 function render(){
   $('#projectTitle').textContent=project.name;$('#projectMeta').textContent=`${project.type} · ${project.location}`;
@@ -28,7 +28,7 @@ function render(){
 }
 function setAuthMode(mode){const signup=mode==='signup',recovery=mode==='recovery';document.querySelector('.auth-mode').hidden=recovery;$('#resetPassword').hidden=recovery;document.querySelectorAll('[data-auth-mode]').forEach(b=>b.classList.toggle('active',b.dataset.authMode===mode));$('#authHeading').textContent=recovery?'Đặt mật khẩu mới':signup?'Tạo tài khoản QS Pro':'Đăng nhập workspace';$('#authDescription').textContent=recovery?'Chọn mật khẩu mới để bảo vệ tài khoản của bạn.':signup?'Tạo không gian riêng cho dự án và dữ liệu QS của bạn.':'Dùng email và mật khẩu để tiếp tục công việc.';$('#authSubmit').innerHTML=recovery?'Lưu mật khẩu mới <span>→</span>':signup?'Tạo tài khoản <span>→</span>':'Đăng nhập <span>→</span>';$('#authForm [name="password"]').autocomplete=signup||recovery?'new-password':'current-password';$('#authMessage').hidden=true;}
 document.querySelectorAll('[data-auth-mode]').forEach(b=>b.addEventListener('click',()=>setAuthMode(b.dataset.authMode)));
-async function enterWorkspace(authUser){if(!demoMode&&authUser&&user?.id===authUser.id&&!$('#appShell').hidden)return;user=authUser;$('#authScreen').hidden=true;$('#appShell').hidden=false;$('#profileEmail').textContent=demoMode?'Bản demo trên thiết bị này':user.email;$('#profileName').textContent=demoMode?'Giám đốc dự án':'Chủ workspace';if(!demoMode){const {data,error}=await supabaseClient.from('qspro_workspaces').select('workspace').eq('user_id',user.id).maybeSingle();if(error){await supabaseClient.auth.signOut();user=null;$('#appShell').hidden=true;$('#authScreen').hidden=false;showMessage('Không tải được dữ liệu workspace. Kiểm tra cấu hình bảng và chính sách bảo mật rồi thử lại.',true);return}if(data?.workspace){items=data.workspace.items||seed;project=data.workspace.project||project;settings=data.workspace.settings||settings}else persist()}render();const start=location.hash.slice(1);if(['overview','takeoff','skills','library'].includes(start))navigate(start)}
+async function enterWorkspace(authUser){if(!demoMode&&authUser&&user?.id===authUser.id&&!$('#appShell').hidden)return;user=authUser;$('#authScreen').hidden=true;$('#appShell').hidden=false;$('#profileEmail').textContent=demoMode?'Bản demo trên thiết bị này':user.email;$('#profileName').textContent=demoMode?'Giám đốc dự án':'Chủ workspace';if(!demoMode){const {data,error}=await supabaseClient.from('qspro_workspaces').select('workspace').eq('user_id',user.id).maybeSingle();if(error){await supabaseClient.auth.signOut();user=null;$('#appShell').hidden=true;$('#authScreen').hidden=false;showMessage('Không tải được dữ liệu workspace. Kiểm tra cấu hình bảng và chính sách bảo mật rồi thử lại.',true);return}if(data?.workspace){items=data.workspace.items||seed;steelBars=data.workspace.steelBars||[];project=data.workspace.project||project;settings=data.workspace.settings||settings}else persist()}render();const start=location.hash.slice(1);if(['overview','takeoff','steel','skills','library'].includes(start))navigate(start)}
 if(demoMode){enterWorkspace(null)}else{ $('#authScreen').hidden=false;if(!configured||!supabaseClient){$('#authSetup').hidden=false;$('#authSubmit').disabled=true;$('#resetPassword').disabled=true;}else{supabaseClient.auth.getSession().then(({data})=>{if(passwordRecovery){$('#authScreen').hidden=false;setAuthMode('recovery');if(data.session)$('#authForm [name="email"]').value=data.session.user.email||''}else if(data.session)enterWorkspace(data.session.user)});supabaseClient.auth.onAuthStateChange((_event,session)=>{if(session&&$('#appShell').hidden&&!passwordRecovery)setTimeout(()=>enterWorkspace(session.user),0);else if(!session){user=null;$('#appShell').hidden=true;$('#authScreen').hidden=false}});if(passwordRecovery)setAuthMode('recovery')}}
 $('#authForm').addEventListener('submit',async e=>{e.preventDefault();if(!configured){showMessage('Hệ thống đăng nhập chưa được cấu hình. Chưa có mật khẩu nào được gửi.',true);return}const form=new FormData(e.currentTarget),email=String(form.get('email')).trim(),password=String(form.get('password')),signup=document.querySelector('[data-auth-mode="signup"]').classList.contains('active'),button=$('#authSubmit');button.disabled=true;button.textContent=passwordRecovery?'Đang cập nhật…':signup?'Đang tạo tài khoản…':'Đang đăng nhập…';$('#authMessage').hidden=true;try{if(passwordRecovery){const {error}=await supabaseClient.auth.updateUser({password});if(error)throw error;passwordRecovery=false;history.replaceState(null,'',location.pathname);setAuthMode('signin');showMessage('Đã cập nhật mật khẩu. Đang mở workspace của bạn.');const {data}=await supabaseClient.auth.getSession();if(data.session)await enterWorkspace(data.session.user)}else{const result=signup?await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin}}):await supabaseClient.auth.signInWithPassword({email,password});if(result.error)throw result.error;if(signup&&!result.data.session)showMessage('Đã nhận yêu cầu đăng ký. Hãy mở email xác nhận để kích hoạt tài khoản QS Pro.');else if(result.data.user)await enterWorkspace(result.data.user)}}catch(err){showMessage(err.message||'Không thể đăng nhập. Hãy kiểm tra email và mật khẩu.',true)}finally{button.disabled=false;button.innerHTML=passwordRecovery?'Lưu mật khẩu mới <span>→</span>':signup?'Tạo tài khoản <span>→</span>':'Đăng nhập <span>→</span>'}});
 $('#resetPassword').addEventListener('click',async()=>{const email=$('#authForm [name="email"]').value.trim();if(!email){showMessage('Nhập email của bạn trước để nhận liên kết đặt lại mật khẩu.',true);return}if(!configured){showMessage('Dịch vụ tài khoản chưa được kết nối.',true);return}const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin});showMessage(error?error.message:'Nếu email tồn tại, liên kết đặt lại mật khẩu sẽ được gửi đến hộp thư.',!!error)});
@@ -45,3 +45,125 @@ $('#measureGuide').addEventListener('click',()=>toast('Quy trình: xác nhận p
 $('#termsGuide').addEventListener('click',()=>toast('BOQ: Bảng khối lượng · BUA: Tổng diện tích sàn · VO: Phát sinh hợp đồng · QS: Kỹ sư khối lượng.'));
 $('#drawingInfo').addEventListener('click',()=>toast('Bản vẽ mẫu KC-03 · Rev. B. Phiên bản cần được xác nhận theo hồ sơ phát hành thực tế.'));
 $('#today').textContent=new Intl.DateTimeFormat('vi-VN',{day:'2-digit',month:'short',year:'numeric'}).format(new Date());
+// PDF-first rebar takeoff. PDF bytes remain in this browser tab; only the schedule syncs with the workspace.
+const steelDiameters=[6,8,10,12,14,16,18,20,22,25,28,32,36,40];
+let pdfjsModule=null,pdfDocument=null,pdfPageNumber=1,pdfZoom=1,pdfMode='',pdfPoints=[],pdfPageCalibrations=new Map(),pdfPageMarks=new Map(),pdfRenderToken=0;
+const pdfCanvas=$('#pdfCanvas'),pdfMarkup=$('#pdfMarkup'),pdfStack=$('#pdfCanvasStack');
+function steelUnitWeight(d){return (Number(d)||0)**2/162}
+function steelRowTotals(row){const length=Math.max(0,Number(row.length)||0),count=Math.max(0,Number(row.count)||0),unit=steelUnitWeight(row.diameter);return{length,count,unit,totalLength:length*count,totalKg:length*count*unit}}
+function updateSteelSummary(){
+  const summary=steelBars.map(steelRowTotals),bars=summary.reduce((a,x)=>a+x.count,0),length=summary.reduce((a,x)=>a+x.totalLength,0),kg=summary.reduce((a,x)=>a+x.totalKg,0);
+  $('#steelTotalBars').textContent=fmt(bars);$('#steelTotalLength').textContent=fmt(length);$('#steelTotalKg').textContent=fmt(kg);$('#steelTotalTon').textContent=fmt(kg/1000)+' tấn';
+  $('#steelEmptyState').hidden=steelBars.length>0;
+  const groups=new Map();steelBars.forEach((row,i)=>{const d=Number(row.diameter)||0;groups.set(d,(groups.get(d)||0)+summary[i].totalKg)});
+  $('#steelBreakdown').innerHTML=[...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([d,totalKg])=>'<span class="steel-breakdown-chip">Ø'+d+' <strong>'+fmt(totalKg)+' kg</strong></span>').join('');
+}
+function renderSteelRows(){
+  const rows=$('#steelRows');if(!rows)return;
+  rows.innerHTML=steelBars.map((row,index)=>{const totals=steelRowTotals(row),diameter=steelDiameters.includes(Number(row.diameter))?Number(row.diameter):12,id=esc(row.id);
+    return '<tr data-steel-row="'+id+'"><td><input data-steel-field="mark" aria-label="Ký hiệu thanh" value="'+esc(row.mark||('T'+String(index+1).padStart(2,'0'))) +'"></td><td><input data-steel-field="element" aria-label="Cấu kiện hoặc ghi chú" value="'+esc(row.element||'')+'"></td><td><select data-steel-field="diameter" aria-label="Đường kính">'+steelDiameters.map(d=>'<option value="'+d+'" '+(d===diameter?'selected':'')+'>'+d+'</option>').join('')+'</select></td><td><input data-steel-field="length" aria-label="Chiều dài một thanh" type="number" min="0" step="0.001" value="'+(Number(row.length)||0)+'"></td><td><input data-steel-field="count" aria-label="Số thanh" type="number" min="0" step="1" value="'+(Number(row.count)||0)+'"></td><td>'+fmt(totals.totalLength)+'</td><td>'+fmt(totals.unit)+'</td><td>'+fmt(totals.totalKg)+'</td><td><button class="steel-row-delete" data-delete-steel="'+id+'" aria-label="Xóa dòng">×</button></td></tr>'}).join('');
+  updateSteelSummary();
+}
+function updateSteelRowDisplay(row,rowElement){
+  const totals=steelRowTotals(row),cells=rowElement?.querySelectorAll('td');if(cells){cells[5].textContent=fmt(totals.totalLength);cells[6].textContent=fmt(totals.unit);cells[7].textContent=fmt(totals.totalKg)}updateSteelSummary();
+}
+function addSteelBar({length=0,count=1,diameter=12,mark='',element=''}={}){
+  const next=steelBars.length+1;steelBars.push({id:'sb-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),mark:mark||'T'+String(next).padStart(2,'0'),element,length:Number(length)||0,count:Number(count)||0,diameter:Number(diameter)||12});renderSteelRows();persist();
+}
+function setPdfHint(message,error=false){const el=$('#steelMeasureHint');el.textContent=message;el.classList.toggle('is-error',error)}
+function setPdfMode(mode){
+  pdfMode=mode;pdfPoints=[];pdfMarkup?.classList.toggle('pdf-markup-idle',!mode);
+  if(pdfMarkup)pdfMarkup.style.pointerEvents=mode?'auto':'none';
+  if(mode==='calibrate')setPdfHint('Đang đặt tỷ lệ: bấm hai đầu của một kích thước đã biết trên bản vẽ.');
+  else if(mode==='measure')setPdfHint('Đang đo: bấm hai đầu một đoạn thép. Sau điểm thứ hai sẽ tạo dòng khối lượng.');
+  else setPdfHint('Chọn “Bắt đầu đo” rồi bấm lần lượt vào hai đầu đoạn thép.');
+}
+function updatePdfScaleStatus(){
+  const scale=pdfPageCalibrations.get(pdfPageNumber)||0,el=$('#steelScaleStatus');
+  if(scale){el.textContent='Đã hiệu chuẩn trang '+pdfPageNumber+' · 1 m ≈ '+fmt(1/scale)+' px trên trang';el.classList.add('is-set')}
+  else{el.textContent='Chưa đặt tỷ lệ cho trang '+pdfPageNumber;el.classList.remove('is-set')}
+}
+async function loadPdfJs(){
+  if(pdfjsModule)return pdfjsModule;
+  pdfjsModule=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.min.mjs');
+  pdfjsModule.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289/build/pdf.worker.min.mjs';
+  return pdfjsModule;
+}
+async function renderPdfPage(){
+  if(!pdfDocument)return;
+  const token=++pdfRenderToken;$('#pdfTextStatus').textContent='Đang dựng trang và đọc lớp chữ…';
+  try{
+    const page=await pdfDocument.getPage(pdfPageNumber),base=page.getViewport({scale:1}),stage=$('#pdfStage'),dpr=Math.min(window.devicePixelRatio||1,2);
+    const available=Math.max(260,stage.clientWidth-34),cssScale=Math.min(1.65,available/base.width)*pdfZoom,viewport=page.getViewport({scale:cssScale*dpr}),cssWidth=viewport.width/dpr,cssHeight=viewport.height/dpr;
+    pdfCanvas.width=viewport.width;pdfCanvas.height=viewport.height;pdfCanvas.style.width=cssWidth+'px';pdfCanvas.style.height=cssHeight+'px';
+    pdfMarkup.width=viewport.width;pdfMarkup.height=viewport.height;pdfMarkup.style.width=cssWidth+'px';pdfMarkup.style.height=cssHeight+'px';
+    pdfStack.style.width=cssWidth+'px';pdfStack.style.height=cssHeight+'px';$('#pdfEmpty').hidden=true;pdfStack.hidden=false;
+    await page.render({canvasContext:pdfCanvas.getContext('2d'),viewport}).promise;if(token!==pdfRenderToken)return;
+    const textContent=await page.getTextContent(),text=textContent.items.map(item=>item.str).filter(Boolean).join(' ').replace(/\s{2,}/g,' ').trim();
+    $('#pdfTextStatus').textContent=text?'Đọc được '+textContent.items.filter(item=>item.str).length+' đoạn chữ trên trang '+pdfPageNumber+'.':'Trang này không có lớp chữ chọn được; có thể là bản scan.';
+    $('#pdfExtract').textContent=text?text.slice(0,7000)+(text.length>7000?'\n… (đã rút gọn phần xem trước)':''):'Không tìm thấy chữ máy đọc được. Anh vẫn có thể xem hình, hiệu chuẩn tỷ lệ và nhập/đo thủ công.';
+    $('#pdfPageLabel').textContent=pdfPageNumber+' / '+pdfDocument.numPages;$('#steelPdfInfo').textContent=pdfDocument.numPages+' trang · Trang đang xem '+pdfPageNumber;
+    updatePdfScaleStatus();drawPdfMarks();
+  }catch(error){console.error('PDF render error',error);$('#pdfTextStatus').textContent='Không thể hiển thị trang PDF.';setPdfHint('Trình duyệt không đọc được trang này. Hãy thử xuất lại PDF rồi tải lên.',true)}
+}
+function pdfPointFromEvent(event){
+  const rect=pdfMarkup.getBoundingClientRect();return{x:(event.clientX-rect.left)/rect.width,y:(event.clientY-rect.top)/rect.height}
+}
+function normalizedDistance(a,b){return Math.hypot(b.x-a.x,b.y-a.y)}
+function drawPdfMarks(){
+  if(!pdfMarkup)return;const ctx=pdfMarkup.getContext('2d'),w=pdfMarkup.width,h=pdfMarkup.height;ctx.clearRect(0,0,w,h);
+  const marks=pdfPageMarks.get(pdfPageNumber)||[];
+  marks.forEach(mark=>{const x1=mark.a.x*w,y1=mark.a.y*h,x2=mark.b.x*w,y2=mark.b.y*h;ctx.save();ctx.strokeStyle=mark.kind==='scale'?'#db9d3c':'#28a680';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=Math.max(2,w/900);ctx.setLineDash(mark.kind==='scale'?[8,6]:[]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);for(const [x,y]of[[x1,y1],[x2,y2]]){ctx.beginPath();ctx.arc(x,y,Math.max(4,w/180),0,Math.PI*2);ctx.fill()}if(mark.label){ctx.font='bold '+Math.max(13,w/60)+'px sans-serif';ctx.fillText(mark.label,(x1+x2)/2+8,(y1+y2)/2-8)}ctx.restore()});
+  if(pdfPoints.length===1){const p=pdfPoints[0];ctx.save();ctx.fillStyle='#d89e39';ctx.beginPath();ctx.arc(p.x*w,p.y*h,Math.max(5,w/160),0,Math.PI*2);ctx.fill();ctx.restore()}
+}
+async function handlePdfPoint(event){
+  if(!pdfMode||!pdfDocument)return;const point=pdfPointFromEvent(event);
+  if(!pdfPoints.length){pdfPoints=[point];drawPdfMarks();return}
+  const first=pdfPoints[0],distanceFraction=normalizedDistance(first,point);pdfPoints=[];
+  if(distanceFraction<.001){setPdfHint('Hai điểm quá gần nhau. Hãy chọn lại hai điểm cách xa hơn.',true);drawPdfMarks();return}
+  const marks=pdfPageMarks.get(pdfPageNumber)||[];
+  if(pdfMode==='calibrate'){
+    const mm=Number($('#knownDistanceMm').value);if(!(mm>0)){setPdfHint('Nhập khoảng cách thực tế bằng mm trước khi chọn điểm.',true);setPdfMode('');return}
+    pdfPageCalibrations.set(pdfPageNumber,distanceFraction/(mm/1000));marks.push({a:first,b:point,kind:'scale',label:fmt(mm)+' mm'});pdfPageMarks.set(pdfPageNumber,marks);setPdfMode('');updatePdfScaleStatus();setPdfHint('Đã hiệu chuẩn trang '+pdfPageNumber+'. Nên chọn đường kích thước dài, rõ và đúng đơn vị.');drawPdfMarks();return
+  }
+  const scale=pdfPageCalibrations.get(pdfPageNumber)||0;if(!scale){setPdfHint('Trang này chưa có tỷ lệ. Hãy hiệu chuẩn bằng kích thước đã biết trước.',true);setPdfMode('');return}
+  const length=distanceFraction/scale,diameter=Number($('#defaultBarDiameter').value)||12,count=Math.max(1,Math.floor(Number($('#defaultBarCount').value)||1));
+  const label=fmt(length)+' m · Ø'+diameter+' · '+count+' thanh';marks.push({a:first,b:point,kind:'measure',label});pdfPageMarks.set(pdfPageNumber,marks);
+  addSteelBar({length:Number(length.toFixed(3)),count,diameter,element:'Đo từ PDF · trang '+pdfPageNumber});
+  setPdfMode('');setPdfHint('Đã thêm '+fmt(length)+' m/thanh × '+count+' thanh Ø'+diameter+'. Kiểm tra dòng mới ở bảng bên dưới.');drawPdfMarks();
+}
+async function openSteelPdf(file){
+  if(!file)return;if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf'){toast('Anh hãy chọn một file PDF.');return}
+  if(file.size>60*1024*1024){toast('File vượt quá 60 MB. Hãy xuất PDF nhẹ hơn rồi thử lại.');return}
+  $('#steelUpload').hidden=true;$('#steelWorkspace').hidden=false;$('#steelFileName').textContent=file.name;$('#pdfTextStatus').textContent='Đang mở PDF…';$('#pdfExtract').textContent='Đang đọc nội dung chữ của trang…';navigate('steel');
+  try{
+    if(pdfDocument){await pdfDocument.destroy();pdfDocument=null}
+    pdfPageCalibrations=new Map();pdfPageMarks=new Map();pdfPageNumber=1;pdfZoom=1;setPdfMode('');
+    const lib=await loadPdfJs(),bytes=new Uint8Array(await file.arrayBuffer());pdfDocument=await lib.getDocument({data:bytes}).promise;
+    $('#steelPdfInfo').textContent=pdfDocument.numPages+' trang';$('#pdfPageLabel').textContent='1 / '+pdfDocument.numPages;await renderPdfPage();
+  }catch(error){console.error('PDF load error',error);$('#pdfTextStatus').textContent='Không mở được file PDF.';$('#pdfExtract').textContent='File có thể bị lỗi, được mã hóa bằng mật khẩu hoặc trình duyệt không tải được thư viện đọc PDF. Hãy thử một PDF khác.';toast('Không mở được PDF. Kiểm tra file rồi thử lại.')}
+}
+$('#chooseSteelPdf').addEventListener('click',()=>$('#steelPdfInput').click());
+$('#steelUploadButton').addEventListener('click',()=>$('#steelPdfInput').click());
+$('#replaceSteelPdf').addEventListener('click',()=>$('#steelPdfInput').click());
+$('#steelPdfInput').addEventListener('change',e=>{const file=e.target.files?.[0];if(file)openSteelPdf(file);e.target.value=''});
+$('#removeSteelPdf').addEventListener('click',async()=>{if(pdfDocument){await pdfDocument.destroy();pdfDocument=null}setPdfMode('');pdfPageCalibrations.clear();pdfPageMarks.clear();$('#steelWorkspace').hidden=true;$('#steelUpload').hidden=false;$('#pdfCanvasStack').hidden=true;$('#pdfEmpty').hidden=false;$('#pdfEmpty').textContent='Bản vẽ sẽ xuất hiện tại đây.';$('#pdfTextStatus').textContent='Chọn một file PDF để bắt đầu.';$('#pdfExtract').textContent='Chọn một file PDF để bắt đầu.'});
+$('#pdfPrev').addEventListener('click',()=>{if(pdfDocument&&pdfPageNumber>1){pdfPageNumber--;setPdfMode('');renderPdfPage()}});
+$('#pdfNext').addEventListener('click',()=>{if(pdfDocument&&pdfPageNumber<pdfDocument.numPages){pdfPageNumber++;setPdfMode('');renderPdfPage()}});
+$('#pdfZoomIn').addEventListener('click',()=>{pdfZoom=Math.min(2.5,pdfZoom*1.2);renderPdfPage()});
+$('#pdfZoomOut').addEventListener('click',()=>{pdfZoom=Math.max(.55,pdfZoom/1.2);renderPdfPage()});
+$('#setScaleMode').addEventListener('click',()=>{if(!pdfDocument){toast('Tải bản vẽ PDF lên trước.');return}if(!(Number($('#knownDistanceMm').value)>0)){setPdfHint('Nhập khoảng cách thực tế (mm), ví dụ 6000, rồi bấm nút hiệu chuẩn.',true);$('#knownDistanceMm').focus();return}setPdfMode('calibrate')});
+$('#measureMode').addEventListener('click',()=>{if(!pdfDocument){toast('Tải bản vẽ PDF lên trước.');return}if(!(pdfPageCalibrations.get(pdfPageNumber)>0)){setPdfHint('Hiệu chuẩn tỷ lệ cho trang đang xem trước khi đo.',true);return}setPdfMode('measure')});
+$('#cancelPdfMode').addEventListener('click',()=>setPdfMode(''));
+pdfMarkup.addEventListener('click',handlePdfPoint);
+$('#addSteelRow').addEventListener('click',()=>{addSteelBar({diameter:12,count:1,element:''});$('#steelRows tr:last-child input[data-steel-field="length"]')?.focus()});
+$('#steelRows').addEventListener('input',e=>{const field=e.target.dataset.steelField,rowElement=e.target.closest('[data-steel-row]');if(!field||!rowElement)return;const row=steelBars.find(item=>item.id===rowElement.dataset.steelRow);if(!row)return;row[field]=field==='diameter'||field==='length'||field==='count'?Number(e.target.value)||0:e.target.value;updateSteelRowDisplay(row,rowElement);persist()});
+$('#steelRows').addEventListener('change',e=>{if(e.target.dataset.steelField){const rowElement=e.target.closest('[data-steel-row]'),row=steelBars.find(item=>item.id===rowElement?.dataset.steelRow);if(row){row[e.target.dataset.steelField]=Number(e.target.value)||0;updateSteelRowDisplay(row,rowElement);persist()}}});
+$('#steelRows').addEventListener('click',e=>{const button=e.target.closest('[data-delete-steel]');if(!button)return;steelBars=steelBars.filter(row=>row.id!==button.dataset.deleteSteel);renderSteelRows();persist()});
+$('#exportSteelCsv').addEventListener('click',()=>{
+  if(!steelBars.length){toast('Bảng chưa có dòng thép để xuất.');return}
+  const rows=[['Ký hiệu','Cấu kiện / ghi chú','Đường kính (mm)','Chiều dài 1 thanh (m)','Số thanh','Tổng chiều dài (m)','Trọng lượng đơn vị (kg/m)','Khối lượng (kg)'],...steelBars.map(row=>{const t=steelRowTotals(row);return[row.mark,row.element,row.diameter,t.length,t.count,t.totalLength,t.unit,t.totalKg]})];
+  const csv='\uFEFF'+rows.map(row=>row.map(value=>'"'+String(value??'').replaceAll('"','""')+'"').join(',')).join('\r\n'),link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download='QS-Pro-'+project.name.replace(/[^\p{L}\p{N}-]+/gu,'-')+'-Thep.csv';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),500);toast('Đã xuất bảng khối lượng thép ra CSV.')
+});
+renderSteelRows();
+
