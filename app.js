@@ -253,7 +253,7 @@ function finishTakeoffArea(){
 }
 async function openSteelPdf(file){
   if(!file)return;if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf'){toast('Anh hãy chọn một file PDF.');return}
-  if(file.size>60*1024*1024){toast('File vượt quá 60 MB. Hãy xuất PDF nhẹ hơn rồi thử lại.');return}
+  if(file.size>100*1024*1024){toast('File vượt quá 100 MB. Hãy xuất PDF nhẹ hơn rồi thử lại.');return}
   $('#steelUpload').hidden=true;$('#steelWorkspace').hidden=false;$('#steelFileName').textContent=file.name;$('#pdfTextStatus').textContent='Đang mở PDF…';$('#pdfExtract').textContent='Đang đọc nội dung chữ của trang…';navigate('steel');
   try{
     if(pdfDocument){await pdfDocument.destroy();pdfDocument=null}
