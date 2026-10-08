@@ -1,0 +1,47 @@
+/* QS Pro typography: requested Times New Roman with larger, readable text. */
+:root {
+  --font: "Times New Roman", Times, serif;
+  --display: "Times New Roman", Times, serif;
+}
+
+*, *::before, *::after {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
+body {
+  font-size: 16px !important;
+  line-height: 1.5;
+}
+
+body *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(svg):not(path):not(.brand-copy):not(.nav-item) {
+  font-size: max(14px, .875em) !important;
+}
+
+body h1 { font-size: 32px !important; line-height: 1.2 !important; letter-spacing: 0 !important; }
+body h2 { font-size: 27px !important; line-height: 1.25 !important; letter-spacing: 0 !important; }
+body h3 { font-size: 20px !important; line-height: 1.3 !important; letter-spacing: 0 !important; }
+body h4, body h5, body h6 { font-size: 17px !important; }
+body p { font-size: 15px !important; line-height: 1.55 !important; }
+body button, body input, body select, body textarea { font-size: 15px !important; }
+body .nav-item { font-size: 15px !important; }
+body .brand-copy { font-size: 19px !important; }
+body .brand-copy span { font-size: 13px !important; }
+body .eyebrow, body .footer, body .tag, body .skill-tag { font-size: 13px !important; }
+body .boq-table th, body .steel-table th { font-size: 12px !important; }
+body .boq-table td, body .steel-table td { font-size: 14px !important; }
+body .sync-status { color: #64746a; white-space: nowrap; }
+body .sync-status.sync-error { color: #a34e43; }
+
+@media (max-width: 700px) {
+  body h1 { font-size: 26px !important; }
+  body h2 { font-size: 23px !important; }
+  body h3 { font-size: 18px !important; }
+  body .workspace, body .nav-label { display: none !important; }
+  body .brand-copy,
+  body .brand-copy span,
+  body .workspace,
+  body .nav-label,
+  body .nav-item,
+  body .nav-item:not(.active) { font-size: 0 !important; }
+  body .nav-item span { font-size: 18px !important; }
+}
